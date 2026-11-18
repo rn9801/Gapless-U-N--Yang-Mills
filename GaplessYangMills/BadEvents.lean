@@ -62,15 +62,18 @@ theorem isOpen_badUnitary {N : ℕ} (hN : 0 < N) : IsOpen {U : UnitaryMatrix N |
 def badPlaquette {N : ℕ} (p : Plaquette) : Set (InfiniteConfig N) :=
   {U | badUnitary (plaquetteHolonomy (fun i x => U (i, x)) p.1 p.2)}
 
-theorem isOpen_badPlaquette {N : ℕ} (hN : 0 < N) (p : Plaquette) :
-    IsOpen (badPlaquette (N := N) p) := by
-  apply (isOpen_badUnitary hN).preimage
+theorem continuous_plaquetteHolonomy {N : ℕ} (p : Plaquette) :
+    Continuous (fun U : InfiniteConfig N => plaquetteHolonomy (fun i x => U (i, x)) p.1 p.2) := by
   have h (i : Axis) (x : Site) : Continuous (fun U : InfiniteConfig N => U (i, x)) :=
     continuous_apply (i, x)
   change Continuous (fun U : InfiniteConfig N => U (p.1.axes.1, p.2) *
     U (p.1.axes.2, p.2 + step p.1.axes.1) * (U (p.1.axes.1, p.2 + step p.1.axes.2))⁻¹ *
     (U (p.1.axes.2, p.2))⁻¹)
   exact (((h _ _).mul (h _ _)).mul (h _ _).inv).mul (h _ _).inv
+
+theorem isOpen_badPlaquette {N : ℕ} (hN : 0 < N) (p : Plaquette) :
+    IsOpen (badPlaquette (N := N) p) :=
+  (isOpen_badUnitary hN).preimage (continuous_plaquetteHolonomy p)
 
 theorem isOpen_allBadPlaquettes {N : ℕ} (hN : 0 < N) (S : Finset Plaquette) :
     IsOpen (allBad (badPlaquette (N := N)) S) := by

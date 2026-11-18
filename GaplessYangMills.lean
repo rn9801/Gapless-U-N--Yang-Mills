@@ -11,11 +11,14 @@ public import GaplessYangMills.Components
 public import GaplessYangMills.ConnectedSetCounting
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
+public import GaplessYangMills.CutFluxApproximation
+public import GaplessYangMills.CutFluxMeasurability
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
 public import GaplessYangMills.DirectionalMean
 public import GaplessYangMills.Duality
 public import GaplessYangMills.Eigenangles
+public import GaplessYangMills.FillingTranslations
 public import GaplessYangMills.FiniteFilling
 public import GaplessYangMills.FiniteGibbs
 public import GaplessYangMills.FiniteWilson
@@ -31,6 +34,7 @@ public import GaplessYangMills.Marginal
 public import GaplessYangMills.MarkedBoxes
 public import GaplessYangMills.MarkedComponents
 public import GaplessYangMills.MarkedEdges
+public import GaplessYangMills.MeasurableRepair
 public import GaplessYangMills.PeriodicKernelCycle
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist

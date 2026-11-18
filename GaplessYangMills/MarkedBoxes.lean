@@ -29,14 +29,14 @@ private theorem incident_coordinate_bounds {e : OrientedEdge} {x : Site} (h : in
   · simp only [Pi.add_apply, step]
     split <;> omega
 
-private theorem adjacent_coordinate_bounds {e f : OrientedEdge} (h : dualEdgeGraph.Adj e f)
+theorem adjacent_coordinate_bounds {e f : OrientedEdge} (h : dualEdgeGraph.Adj e f)
     (i : Axis) : e.1 i ≤ f.1 i + 1 ∧ f.1 i ≤ e.1 i + 1 := by
   obtain ⟨_, x, he, hf⟩ := h
   have h₁ := incident_coordinate_bounds he i
   have h₂ := incident_coordinate_bounds hf i
   omega
 
-private theorem walk_coordinate_bounds {e f : OrientedEdge} (p : dualEdgeGraph.Walk e f)
+theorem walk_coordinate_bounds {e f : OrientedEdge} (p : dualEdgeGraph.Walk e f)
     {g : OrientedEdge} (hg : g ∈ p.support) (i : Axis) :
     e.1 i ≤ g.1 i + p.length ∧ g.1 i ≤ e.1 i + p.length := by
   induction p with
@@ -76,6 +76,10 @@ def edgeBoxContains (S : Finset OrientedEdge) (x : Site) : Prop :=
 def edgesNearVertex (x : Site) (R : ℕ) : Finset OrientedEdge :=
   (Fintype.piFinset fun i : Axis => Finset.Icc (x i - (R : ℤ)) (x i + R)) ×ˢ Finset.univ
 
+theorem mem_edgesNearVertex_iff (x : Site) (R : ℕ) (e : OrientedEdge) :
+    e ∈ edgesNearVertex x R ↔ ∀ i : Axis, x i - (R : ℤ) ≤ e.1 i ∧ e.1 i ≤ x i + R := by
+  simp [edgesNearVertex, Fintype.mem_piFinset, Finset.mem_Icc]
+
 private theorem edgesNearVertex_card (x : Site) (R : ℕ) :
     (edgesNearVertex x R).card = 4 * (2 * R + 1) ^ 4 := by
   have h (i : Axis) : (Finset.Icc (x i - (R : ℤ)) (x i + R)).card = 2 * R + 1 := by
@@ -107,6 +111,34 @@ private theorem connected_box_has_anchor (S : Finset OrientedEdge) (x : Site)
   have h₂ := (hbound g hg i).2
   apply Finset.mem_Icc.mpr
   constructor <;> push_cast <;> omega
+
+/-- The size-`n` sets that need to be checked for a box reaching `x`. -/
+def connectedBoxCover (x : Site) (n : ℕ) : Finset (Finset OrientedEdge) :=
+  (edgesNearVertex x (2 * n + 1)).biUnion fun e => connectedSetCover dualEdgeGraph e n
+
+theorem mem_connectedBoxCover (S : Finset OrientedEdge) (x : Site)
+    (hbox : edgeBoxContains S x) (hconn : ∃ e ∈ S, ∀ f ∈ S,
+      ∃ w : dualEdgeGraph.Walk e f, ∀ g ∈ w.support, g ∈ S) :
+    S ∈ connectedBoxCover x S.card := by
+  obtain ⟨e, he, hS⟩ := connected_box_has_anchor S x hbox hconn
+  exact Finset.mem_biUnion.mpr ⟨e, he, hS⟩
+
+theorem card_eq_of_mem_connectedBoxCover {S : Finset OrientedEdge} {x : Site} {n : ℕ}
+    (hS : S ∈ connectedBoxCover x n) : S.card = n := by
+  obtain ⟨_, _, h⟩ := Finset.mem_biUnion.mp hS
+  exact (Finset.mem_filter.mp h).2
+
+theorem card_connectedBoxCover_le (x : Site) (n : ℕ) :
+    (connectedBoxCover x n).card ≤ 4 * (4 * n + 3) ^ 4 * 14 ^ (2 * (n - 1)) := by
+  unfold connectedBoxCover
+  refine Finset.card_biUnion_le.trans ?_
+  calc
+    _ ≤ ∑ _e ∈ edgesNearVertex x (2 * n + 1), (14 : ℕ) ^ (2 * (n - 1)) :=
+      Finset.sum_le_sum fun e _ => card_connectedSetCover_le dualEdgeGraph 14 dualEdgeGraph_degree_le e n
+    _ = _ := by
+      rw [Finset.sum_const, nsmul_eq_mul, edgesNearVertex_card,
+        show 2 * (2 * n + 1) + 1 = 4 * n + 3 by omega]
+      norm_cast
 
 variable {Ω : Type*} [MeasurableSpace Ω]
 
@@ -172,8 +204,7 @@ theorem markedConnectedBoxes_finite_ae (μ : Measure Ω) (mark : OrientedEdge �
       (tsum_le_tsum fun n => measure_markedBoxEvent_le μ mark q hq hjoint x n)
   filter_upwards [ae_eventually_notMem hsum] with ω hω
   obtain ⟨K, hK⟩ := eventually_atTop.mp hω
-  let A := (Finset.range K).biUnion fun n =>
-    (edgesNearVertex x (2 * n + 1)).biUnion fun e => connectedSetCover dualEdgeGraph e n
+  let A := (Finset.range K).biUnion fun n => connectedBoxCover x n
   refine A.finite_toSet.subset ?_
   intro S hS
   obtain ⟨hm, hb, hc⟩ := hS

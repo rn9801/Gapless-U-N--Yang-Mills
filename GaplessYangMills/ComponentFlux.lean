@@ -2,6 +2,7 @@ module
 
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes
+public import GaplessYangMills.FillingTranslations
 public import GaplessYangMills.MarkedBoxes
 
 /-!
@@ -41,7 +42,7 @@ def CurrentComponent (q : OrientedEdge → ℤ) :=
   {C : Set OrientedEdge // ∃ e, q e ≠ 0 ∧
     C = markedComponent dualEdgeGraph (Function.support q) e}
 
-private theorem component_support {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
+theorem component_support {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
     C.val ⊆ Function.support q := by
   obtain ⟨e, _, hC⟩ := C.property
   intro f hf
@@ -49,7 +50,7 @@ private theorem component_support {q : OrientedEdge → ℤ} (C : CurrentCompone
   obtain ⟨p, hp⟩ := hf
   exact hp f p.end_mem_support
 
-private theorem component_connected {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
+theorem component_connected {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
     ∃ e ∈ C.val, ∀ f ∈ C.val, ∃ p : dualEdgeGraph.Walk e f, ∀ g ∈ p.support, g ∈ C.val := by
   obtain ⟨e, he, hC⟩ := C.property
   refine ⟨e, ?_, fun f hf => ?_⟩
@@ -61,7 +62,7 @@ private theorem component_connected {q : OrientedEdge → ℤ} (C : CurrentCompo
     rw [hC]
     exact ⟨p.takeUntil g hg, fun v hv => hp v (p.support_takeUntil_subset_support hg hv)⟩
 
-private theorem component_saturated {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
+theorem component_saturated {q : OrientedEdge → ℤ} (C : CurrentComponent q) :
     CurrentSaturated q C.val := by
   obtain ⟨a, _, hC⟩ := C.property
   intro x e f he hf he₀ hf₀ h
@@ -92,15 +93,22 @@ theorem support_dualCurrent (q : ThreeForm ℤ) (e : OrientedEdge) :
   obtain ⟨x, i⟩ := e
   fin_cases i <;> simp [dualCurrent, edgeCubeEquiv]
 
-/-- Each nonzero current component admits a filling, and each vertex is a
-base of squares from only finitely many of the fillings. -/
-theorem exists_locallyFinite_componentFillings (q : OrientedEdge → ℤ)
+/-- The filling of a finite component depends only on its signed current. -/
+def signedComponentFilling (q : OrientedEdge → ℤ) (C : CurrentComponent q) : SquareChain := by
+  classical
+  exact if h : (Function.support (restrictCurrent q C.val)).Finite then
+    translatedChainFilling (Finsupp.ofSupportFinite (restrictCurrent q C.val) h)
+  else 0
+
+/-- Each chosen filling has the component as its boundary. Only finitely
+many of the fillings contribute squares at a fixed base. -/
+theorem signedComponentFillings_spec (q : OrientedEdge → ℤ)
     (hq : ∀ x, currentDivergence q x = 0) (M : Set OrientedEdge) (hM : Function.support q ⊆ M)
     (hfinite : ∀ e, (markedComponent dualEdgeGraph M e).Finite)
     (hboxes : ∀ x, (markedConnectedBoxes M x).Finite) :
-    ∃ Y : CurrentComponent q → SquareChain,
-      (∀ C, (boundary₂ (Y C) : OrientedEdge → ℤ) = restrictCurrent q C.val) ∧
-      ∀ x : Site, {C | ∃ I : Face, Y C (x, I) ≠ 0}.Finite := by
+    (∀ C : CurrentComponent q,
+      (boundary₂ (signedComponentFilling q C) : OrientedEdge → ℤ) = restrictCurrent q C.val) ∧
+      ∀ x : Site, {C | ∃ I : Face, signedComponentFilling q C (x, I) ≠ 0}.Finite := by
   classical
   have hC (C : CurrentComponent q) : C.val.Finite := by
     obtain ⟨e, _, h⟩ := C.property
@@ -110,8 +118,8 @@ theorem exists_locallyFinite_componentFillings (q : OrientedEdge → ℤ)
   have hS (C : CurrentComponent q) (e : OrientedEdge) : e ∈ S C ↔ e ∈ C.val :=
     Set.Finite.mem_toFinset _
   have hfill (C : CurrentComponent q) :
-      ∃ s : SquareChain, (boundary₂ s : OrientedEdge → ℤ) = restrictCurrent q C.val ∧
-        ∀ p ∈ s.support, edgeBoxContains (S C) p.1 := by
+      (boundary₂ (signedComponentFilling q C) : OrientedEdge → ℤ) = restrictCurrent q C.val ∧
+        ∀ p ∈ (signedComponentFilling q C).support, edgeBoxContains (S C) p.1 := by
     have hsupp : (Function.support (restrictCurrent q C.val)).Finite :=
       (hC C).subset fun e he => by
         by_contra hn
@@ -125,26 +133,28 @@ theorem exists_locallyFinite_componentFillings (q : OrientedEdge → ℤ)
           by_contra hn
           exact h (Set.indicator_of_notMem hn _)
     obtain ⟨e, he, _⟩ := component_connected C
-    have hn : (S C).Nonempty := ⟨e, (hS C e).mpr he⟩
-    let o : Site := fun i => (S C).inf' hn (fun e => e.1 i)
-    let b : Site := fun i => (S C).sup' hn (fun e => (e.1 + step e.2) i)
-    have hbounds (f : OrientedEdge) (hf : f ∈ r.support) : o ≤ f.1 ∧ f.1 + step f.2 ≤ b :=
-      ⟨fun i => Finset.inf'_le (fun f => f.1 i) (hsupport f hf),
-        fun i => Finset.le_sup' (fun f => (f.1 + step f.2) i) (hsupport f hf)⟩
+    have hn : r.support.Nonempty := by
+      refine ⟨e, Finsupp.mem_support_iff.mpr ?_⟩
+      rw [congrFun hr e, restrictCurrent, Set.indicator_of_mem he]
+      exact component_support C he
     have hdiv : boundary₁ r = 0 := by
       ext x
       rw [boundary₁_eq_currentDivergence, hr]
       exact currentDivergence_restrict q C.val (component_saturated C) hq x
-    obtain ⟨s, hsr, hbox⟩ := exists_finite_filling_in_box r hdiv o b hbounds
-    refine ⟨s, hsr ▸ hr, fun p hp i => ?_⟩
-    have hlo : o i ≤ p.1 i := (hbox p hp).1 i
-    have hhi : p.1 i ≤ b i := (hbox p hp).2 i
+    rw [signedComponentFilling, dite_eq_left hsupp]
+    change (boundary₂ (translatedChainFilling r) : OrientedEdge → ℤ) = _ ∧ _
+    obtain ⟨hsr, hbox, _⟩ := translatedChainFilling_spec r hdiv
+    refine ⟨(congrArg (fun Q : EdgeChain => (Q : OrientedEdge → ℤ)) hsr).trans hr, fun p hp i => ?_⟩
+    have hlo : r.support.inf' hn (fun e => e.1 i) ≤ p.1 i := by
+      simpa only [edgeChainLower, dite_eq_left hn] using (hbox p hp).1 i
+    have hhi : p.1 i ≤ r.support.sup' hn (fun e => (e.1 + step e.2) i) := by
+      simpa only [edgeChainUpper, dite_eq_left hn] using (hbox p hp).2 i
     obtain ⟨a, ha, hmin⟩ := Finset.exists_mem_eq_inf' hn (fun f => f.1 i)
     obtain ⟨z, hz, hmax⟩ := Finset.exists_mem_eq_sup' hn (fun f => (f.1 + step f.2) i)
-    exact ⟨⟨a.1, Finset.mem_union_left _ (Finset.mem_image_of_mem _ ha), hmin ▸ hlo⟩,
-      ⟨z.1 + step z.2, Finset.mem_union_right _ (Finset.mem_image_of_mem _ hz), hmax ▸ hhi⟩⟩
-  choose Y hY hb using hfill
-  refine ⟨Y, hY, fun x => ?_⟩
+    exact ⟨⟨a.1, Finset.mem_union_left _ (Finset.mem_image_of_mem _ (hsupport a ha)), hmin ▸ hlo⟩,
+      ⟨z.1 + step z.2, Finset.mem_union_right _ (Finset.mem_image_of_mem _ (hsupport z hz)),
+        hmax ▸ hhi⟩⟩
+  refine ⟨fun C => (hfill C).1, fun x => ?_⟩
   have hinj : Function.Injective S := by
     intro C D he
     apply Subtype.ext
@@ -155,25 +165,37 @@ theorem exists_locallyFinite_componentFillings (q : OrientedEdge → ℤ)
   obtain ⟨I, hi⟩ := h
   obtain ⟨e, he, hconn⟩ := component_connected C
   refine ⟨fun f hf => hM (component_support C ((hS C f).mp hf)),
-    hb C (x, I) (Finsupp.mem_support_iff.mpr hi), e, (hS C e).mpr he, ?_⟩
+    (hfill C).2 (x, I) (Finsupp.mem_support_iff.mpr hi), e, (hS C e).mpr he, ?_⟩
   intro f hf
   obtain ⟨p, hp⟩ := hconn f ((hS C f).mp hf)
   exact ⟨p, fun g hg => (hS C g).mpr (hp g hg)⟩
 
+theorem exists_locallyFinite_componentFillings (q : OrientedEdge → ℤ)
+    (hq : ∀ x, currentDivergence q x = 0) (M : Set OrientedEdge) (hM : Function.support q ⊆ M)
+    (hfinite : ∀ e, (markedComponent dualEdgeGraph M e).Finite)
+    (hboxes : ∀ x, (markedConnectedBoxes M x).Finite) :
+    ∃ Y : CurrentComponent q → SquareChain,
+      (∀ C, (boundary₂ (Y C) : OrientedEdge → ℤ) = restrictCurrent q C.val) ∧
+      ∀ x : Site, {C | ∃ I : Face, Y C (x, I) ≠ 0}.Finite :=
+  ⟨signedComponentFilling q, signedComponentFillings_spec q hq M hM hfinite hboxes⟩
+
+def fillDefect (q : ThreeForm ℤ) : TwoForm ℤ :=
+  sumFillings (fun C : CurrentComponent (dualCurrent q) => primalFilling (signedComponentFilling _ C))
+
 /-- A closed integer defect supported in the marked graph is the exterior
-derivative of a locally finite sum of finite fillings. -/
-theorem exists_fluxFilling_of_markedBoxes (q : ThreeForm ℤ) (hq : d₃ q = 0)
+derivative of the sum of the chosen component fillings. -/
+theorem d₂_fillDefect_of_markedBoxes (q : ThreeForm ℤ) (hq : d₃ q = 0)
     (M : Set OrientedEdge) (hM : Function.support (dualCurrent q) ⊆ M)
     (hfinite : ∀ e, (markedComponent dualEdgeGraph M e).Finite)
     (hboxes : ∀ x, (markedConnectedBoxes M x).Finite) :
-    ∃ Y : TwoForm ℤ, d₂ Y = q := by
+    d₂ (fillDefect q) = q := by
   classical
   let r := dualCurrent q
   have hd (x : Site) : currentDivergence r x = 0 := by
     change currentDivergence (dualCurrent q) x = _
     rw [currentDivergence_dualCurrent, hq, Pi.zero_apply]
-  obtain ⟨Y, hY, hb⟩ := exists_locallyFinite_componentFillings r hd M hM hfinite hboxes
-  let Yp (C : CurrentComponent r) := primalFilling (Y C)
+  obtain ⟨hY, hb⟩ := signedComponentFillings_spec r hd M hM hfinite hboxes
+  let Yp (C : CurrentComponent r) := primalFilling (signedComponentFilling r C)
   have hlocal (I : Face) (x : Site) :
       (Function.support fun C => Yp C I x).Finite := by
     refine (hb (-x)).subset fun C hc => ?_
@@ -186,12 +208,12 @@ theorem exists_fluxFilling_of_markedBoxes (q : ThreeForm ℤ) (hq : d₃ q = 0)
     · exact ⟨.xy, by simpa [Yp, primalFilling, Function.mem_support] using hc⟩
   have hterm (C : CurrentComponent r) (c : Cube) (x : Site) :
       d₂ (Yp C) c x = if edgeCubeEquiv.symm (c, x) ∈ C.val then q c x else 0 := by
-    change d₂ (primalFilling (Y C)) c x = _
+    change d₂ (primalFilling (signedComponentFilling r C)) c x = _
     rw [← boundary₂_primalFilling]
     cases c <;>
       simp [primalCurrent, edgeCubeEquiv, hY, restrictCurrent,
         Set.indicator_apply, r, dualCurrent] <;> split <;> simp_all
-  refine ⟨sumFillings Yp, ?_⟩
+  change d₂ (sumFillings Yp) = q
   funext c x
   rw [d₂_sumFillings Yp hlocal]
   simp_rw [hterm]
@@ -211,14 +233,30 @@ theorem exists_fluxFilling_of_markedBoxes (q : ThreeForm ℤ) (hq : d₃ q = 0)
       rw [hC] at he
       exact hne (Subtype.ext (hC.trans (component_eq_of_mem dualEdgeGraph he)))
 
+theorem exists_fluxFilling_of_markedBoxes (q : ThreeForm ℤ) (hq : d₃ q = 0)
+    (M : Set OrientedEdge) (hM : Function.support (dualCurrent q) ⊆ M)
+    (hfinite : ∀ e, (markedComponent dualEdgeGraph M e).Finite)
+    (hboxes : ∀ x, (markedConnectedBoxes M x).Finite) :
+    ∃ Y : TwoForm ℤ, d₂ Y = q :=
+  ⟨fillDefect q, d₂_fillDefect_of_markedBoxes q hq M hM hfinite hboxes⟩
+
+def repairedCutFlux {N : ℕ} (U : OneForm (UnitaryMatrix N)) (η : TwoForm ℝ) : TwoForm ℝ :=
+  repairFlux fillDefect (liftFlux η (plaquetteEigenangles U))
+
+theorem repairedCutFlux_central_links {N : ℕ} (hN : 0 < N) (U : OneForm (UnitaryMatrix N))
+    (α : OneForm ℝ) (η : TwoForm ℝ) :
+    repairedCutFlux (fun i x => centralPhase N (Circle.exp (α i x / N)) * U i x) η =
+      repairedCutFlux U (shiftCuts η (d₁ α) N) + d₁ α :=
+  repairFlux_central_links hN U α η fillDefect
+
 /-- Almost every Wilson configuration admits locally finite repairs for
 all cuts in the specified interval. -/
-theorem exists_fluxFilling_periodicLimit_ae {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
+theorem repairedCutFlux_closed_periodicLimit_ae {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
     (μ : ProbabilityMeasure (InfiniteConfig N)) (l : ℕ → ℕ) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) :
     ∀ᵐ U ∂(μ : Measure (InfiniteConfig N)), ∀ η : TwoForm ℝ, (∀ I x, |η I x| ≤ Real.pi / 16) →
       let a := liftFlux η (plaquetteEigenangles (fun i x => U (i, x)))
-      ∃ Y : TwoForm ℤ, d₂ Y = defect a ∧ d₂ (repairFlux (fun _ => Y) a) = 0 := by
+      d₂ (fillDefect (defect a)) = defect a ∧ d₂ (repairedCutFlux (fun i x => U (i, x)) η) = 0 := by
   filter_upwards [markedComponents_finite_periodicLimit hN hβ μ l hl hμ,
     markedConnectedBoxes_finite_periodicLimit hN hβ μ l hl hμ] with U hfinite hboxes
   intro η hη
@@ -231,8 +269,19 @@ theorem exists_fluxFilling_periodicLimit_ae {N : ℕ} (hN : 0 < N) {β : ℝ} (h
     intro e he
     apply has_bad_face_of_nonzero_defect U η (edgeCubeEquiv e) (fun p _ => hη p.1 p.2)
     exact (support_dualCurrent (defect a) e).mp he
-  obtain ⟨Y, hY⟩ := exists_fluxFilling_of_markedBoxes (defect a) hclosed _ hs hfinite hboxes
-  exact ⟨Y, hY, repairFlux_closed (fun _ => Y) a hcube hY⟩
+  have hY := d₂_fillDefect_of_markedBoxes (defect a) hclosed _ hs hfinite hboxes
+  exact ⟨hY, repairFlux_closed fillDefect a hcube hY⟩
+
+theorem exists_fluxFilling_periodicLimit_ae {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (l : ℕ → ℕ) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) :
+    ∀ᵐ U ∂(μ : Measure (InfiniteConfig N)), ∀ η : TwoForm ℝ, (∀ I x, |η I x| ≤ Real.pi / 16) →
+      let a := liftFlux η (plaquetteEigenangles (fun i x => U (i, x)))
+      ∃ Y : TwoForm ℤ, d₂ Y = defect a ∧ d₂ (repairFlux (fun _ => Y) a) = 0 := by
+  filter_upwards [repairedCutFlux_closed_periodicLimit_ae hN hβ μ l hl hμ] with U hU
+  intro η hη
+  obtain ⟨hfill, hc⟩ := hU η hη
+  exact ⟨_, hfill, hc⟩
 
 end
 
