@@ -77,11 +77,14 @@ import all GaplessYangMills.Wilson
 import all GaplessYangMills.WilsonBadPlaquettes
 import all GaplessYangMills.WilsonBondLimit
 import all GaplessYangMills.WilsonCovariance
+import all GaplessYangMills.WilsonHalfSpace
 import all GaplessYangMills.WilsonKernel
 import all GaplessYangMills.WilsonLimits
+import all GaplessYangMills.WilsonOS
 import all GaplessYangMills.WilsonProjection
 import all GaplessYangMills.WilsonReflections
 import all GaplessYangMills.WilsonSliceKernel
+import all GaplessYangMills.WilsonTransferCorrelations
 import all GaplessYangMills.WilsonTranslations
 meta import Lean.Elab.Command
 meta import Lean.Util.CollectAxioms
