@@ -31,9 +31,11 @@ public import GaplessYangMills.GaugeAveraging
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes
 public import GaplessYangMills.GramTwist
+public import GaplessYangMills.InfiniteGibbs
 public import GaplessYangMills.KernelCycleEstimate
 public import GaplessYangMills.KernelQuadrature
 public import GaplessYangMills.Lattice
+public import GaplessYangMills.LocalWilsonGeometry
 public import GaplessYangMills.Marginal
 public import GaplessYangMills.MarkedBoxes
 public import GaplessYangMills.MarkedComponents

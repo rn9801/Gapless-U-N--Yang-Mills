@@ -1,6 +1,7 @@
 module
 
 public import GaplessYangMills.BadPlaquetteEstimate
+public import GaplessYangMills.LocalWilsonGeometry
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwistLaw
 
@@ -52,24 +53,13 @@ theorem measure_periodicWilson_allBad_le {L N : ℕ} [NeZero L] (hL : Even L) (h
   simpa only [he] using badEvent_le_of_orientationExpectations (periodicWilson L N β)
     badTorusPlaquette (fun p => (isOpen_badTorusPlaquette hN p).measurableSet) M a ha hM hE S
 
-private def torusPlaquetteReduction (L : ℕ) (p : Plaquette) : TorusPlaquette L :=
-  (p.1, fun i => (p.2 i : ZMod L))
-
-private theorem torusSite_reduction_step (L : ℕ) (x : Site) (i : Axis) :
-    (fun j => ((x + step i) j : ZMod L)) =
-      (fun j => (x j : ZMod L)) + torusStep L i := by
-  funext j
-  simp only [Pi.add_apply, Int.cast_add, torusStep]
-  by_cases h : i = j <;> simp [step, h]
-
 private theorem badTorusPlaquette_extendPeriodic {L N : ℕ} (U : TorusConfig L N) (p : Plaquette) :
-    extendPeriodic U ∈ badPlaquette p ↔ U ∈ badTorusPlaquette (torusPlaquetteReduction L p) := by
-  simp only [badPlaquette, badTorusPlaquette, Set.mem_ofPred_eq, plaquetteHolonomy,
-    periodicHolonomy, torusPlaquetteReduction, extendPeriodic, torusSite_reduction_step]
+    extendPeriodic U ∈ badPlaquette p ↔ U ∈ badTorusPlaquette (torusCellReduction L p) := by
+  simp only [badPlaquette, badTorusPlaquette, Set.mem_ofPred_eq, periodicHolonomy_extendPeriodic]
 
 private theorem allBad_extendPeriodic {L N : ℕ} (S : Finset Plaquette) :
     (extendPeriodic : TorusConfig L N → InfiniteConfig N) ⁻¹' allBad badPlaquette S =
-      allBad badTorusPlaquette (S.image (torusPlaquetteReduction L)) := by
+      allBad badTorusPlaquette (S.image (torusCellReduction L)) := by
   classical
   ext U
   constructor
@@ -78,30 +68,6 @@ private theorem allBad_extendPeriodic {L N : ℕ} (S : Finset Plaquette) :
     exact (badTorusPlaquette_extendPeriodic U q).mp (h q hq)
   · intro h p hp
     exact (badTorusPlaquette_extendPeriodic U p).mpr (h _ (Finset.mem_image_of_mem _ hp))
-
-private def plaquetteRadius (S : Finset Plaquette) : ℕ :=
-  S.sup (fun p => Finset.univ.sup (fun i : Axis => (p.2 i).natAbs))
-
-private theorem torusPlaquetteReduction_injOn {L : ℕ} (S : Finset Plaquette)
-    (hL : 2 * plaquetteRadius S < L) : Set.InjOn (torusPlaquetteReduction L) (↑S : Set Plaquette) := by
-  intro p hp q hq h
-  have hface : p.1 = q.1 := congrArg (fun t : TorusPlaquette L => t.1) h
-  refine Prod.ext hface (funext fun i => ?_)
-  have hm : (p.2 i : ZMod L) = (q.2 i : ZMod L) := congrFun (congrArg Prod.snd h) i
-  have hd : (L : ℤ) ∣ q.2 i - p.2 i := (ZMod.intCast_eq_intCast_iff_dvd_sub _ _ _).mp hm
-  have hd' : L ∣ (q.2 i - p.2 i).natAbs := by
-    simpa only [Int.natAbs_natCast] using Int.natAbs_dvd_natAbs.mpr hd
-  have hb (r : Plaquette) (hr : r ∈ S) : (r.2 i).natAbs ≤ plaquetteRadius S :=
-    (Finset.le_sup (f := fun j : Axis => (r.2 j).natAbs) (Finset.mem_univ i)).trans
-      (Finset.le_sup (s := S) (f := fun p : Plaquette =>
-        Finset.univ.sup (fun j : Axis => (p.2 j).natAbs)) hr)
-  have hbp := hb p hp
-  have hbq := hb q hq
-  by_contra hne
-  have hpos : 0 < (q.2 i - p.2 i).natAbs := Int.natAbs_pos.mpr (sub_ne_zero.mpr (Ne.symm hne))
-  have hlo := Nat.le_of_dvd hpos hd'
-  have hhi := Int.natAbs_sub_le (q.2 i) (p.2 i)
-  omega
 
 /-- Lemma 2 for any periodic weak limit along even lengths. -/
 theorem measure_periodicLimit_allBad_le {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 40 ≤ β)
@@ -112,16 +78,16 @@ theorem measure_periodicLimit_allBad_le {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ :
       ENNReal.ofReal (Real.exp (-(badPenalty * (N : ℝ) * β / 24) * S.card)) := by
   classical
   apply weakLimit_open_bound_eventually _ μ hμ _ (isOpen_allBadPlaquettes hN S) _
-  refine Filter.eventually_atTop.mpr ⟨2 * plaquetteRadius S, fun n hn => ?_⟩
+  refine Filter.eventually_atTop.mpr ⟨2 * cellSetRadius S, fun n hn => ?_⟩
   let L := evenLength (l n)
-  have hL : 2 * plaquetteRadius S < L := by
+  have hL : 2 * cellSetRadius S < L := by
     have hln : n ≤ l n := hl.id_le n
     dsimp only [L, evenLength]
     omega
   have he : Even L := ⟨l n + 2, by dsimp only [L, evenLength]; omega⟩
-  let T := S.image (torusPlaquetteReduction L)
+  let T := S.image (torusCellReduction L)
   have hcard : T.card = S.card :=
-    Finset.card_image_of_injOn (torusPlaquetteReduction_injOn S hL)
+    Finset.card_image_of_injOn (torusCellReduction_injOn S hL)
   have hbad := measure_periodicWilson_allBad_le he hN hβ T
   rw [hcard] at hbad
   change (Measure.map (extendPeriodic : TorusConfig L N → InfiniteConfig N) (periodicWilson L N β))
