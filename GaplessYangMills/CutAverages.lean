@@ -183,7 +183,7 @@ theorem integrable_cutFlux_periodicLimit_ae (hN : 0 < N) {β : ℝ}
   exact (integrable_cutFluxApprox ν hν R U I x).congr
     (hν.mono fun η hη => hR R le_rfl η hη)
 
-private theorem d₂_integral {Ω : Type*} [MeasurableSpace Ω] (m : Measure Ω)
+theorem d₂_integral {Ω : Type*} [MeasurableSpace Ω] (m : Measure Ω)
     (f : Ω → TwoForm ℝ) (hf : ∀ J y, Integrable (fun ω => f ω J y) m) (c : Cube) (x : Site) :
     d₂ (fun J y => ∫ ω, f ω J y ∂m) c x = ∫ ω, d₂ (f ω) c x ∂m := by
   have hdiff (i : Axis) (I : Face) : Integrable (fun ω => diff i (f ω I) x) m :=

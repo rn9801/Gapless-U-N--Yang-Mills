@@ -36,7 +36,7 @@ abbrev DualEdge := Cube × Site
   | (.yzw, x) => [(.zw, x), (.zw, x + step 1), (.yw, x), (.yw, x + step 2),
       (.yz, x), (.yz, x + step 3)]
 
-private def faceCubeList : Plaquette → List DualEdge
+@[expose] def faceCubeList : Plaquette → List DualEdge
   | (.xy, x) => [(.xyz, x), (.xyz, x - step 2), (.xyw, x), (.xyw, x - step 3)]
   | (.xz, x) => [(.xyz, x), (.xyz, x - step 1), (.xzw, x), (.xzw, x - step 3)]
   | (.xw, x) => [(.xyw, x), (.xyw, x - step 1), (.xzw, x), (.xzw, x - step 2)]
@@ -55,7 +55,7 @@ theorem mem_cubeFaces_list {p : Plaquette} (e : DualEdge) :
   simp [cubeFaces]
 
 /-- The four cubes incident to a primal face. -/
-noncomputable def faceCubes (p : Plaquette) : Finset DualEdge := by
+@[expose] noncomputable def faceCubes (p : Plaquette) : Finset DualEdge := by
   classical
   exact (faceCubeList p).toFinset
 

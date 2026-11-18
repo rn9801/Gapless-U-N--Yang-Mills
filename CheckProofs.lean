@@ -19,6 +19,7 @@ import all GaplessYangMills.CutFluxBounds
 import all GaplessYangMills.CutFluxMeasurability
 import all GaplessYangMills.CutLaw
 import all GaplessYangMills.CutResponse
+import all GaplessYangMills.CutSensitivity
 import all GaplessYangMills.Decay
 import all GaplessYangMills.DefectBounds
 import all GaplessYangMills.DirectionalMean
@@ -63,6 +64,7 @@ import all GaplessYangMills.Ward
 import all GaplessYangMills.WeakCoupling
 import all GaplessYangMills.Wilson
 import all GaplessYangMills.WilsonBadPlaquettes
+import all GaplessYangMills.WilsonCovariance
 import all GaplessYangMills.WilsonKernel
 import all GaplessYangMills.WilsonLimits
 import all GaplessYangMills.WilsonSliceKernel

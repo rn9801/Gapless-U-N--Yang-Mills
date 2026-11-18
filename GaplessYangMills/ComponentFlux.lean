@@ -22,7 +22,7 @@ open scoped Topology
 
 noncomputable section
 
-private theorem component_eq_of_mem {V : Type*} (G : SimpleGraph V) {M : Set V} {x y : V}
+theorem component_eq_of_mem {V : Type*} (G : SimpleGraph V) {M : Set V} {x y : V}
     (hy : y ∈ markedComponent G M x) : markedComponent G M x = markedComponent G M y := by
   obtain ⟨p, hp⟩ := hy
   ext z

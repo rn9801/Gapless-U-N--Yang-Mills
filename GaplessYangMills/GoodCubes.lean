@@ -68,7 +68,7 @@ private theorem six_good_factors_phase {N : ℕ} (A B C D E F : UnitaryMatrix N)
   simp only [phaseTrace_neg] at hzero
   linarith
 
-private theorem eigenAngleLift_of_good {N : ℕ} (U : UnitaryMatrix N) (η : ℝ)
+theorem eigenAngleLift_of_good {N : ℕ} (U : UnitaryMatrix N) (η : ℝ)
     (hη : |η| ≤ Real.pi / 16) (hU : ¬ badUnitary U) :
     eigenAngleLift U η = principalAngleSum U := by
   unfold eigenAngleLift principalAngleSum
