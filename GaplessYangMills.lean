@@ -70,5 +70,7 @@ public import GaplessYangMills.WilsonBadPlaquettes
 public import GaplessYangMills.WilsonCovariance
 public import GaplessYangMills.WilsonKernel
 public import GaplessYangMills.WilsonLimits
+public import GaplessYangMills.WilsonProjection
+public import GaplessYangMills.WilsonReflections
 public import GaplessYangMills.WilsonSliceKernel
 public import GaplessYangMills.WilsonTranslations

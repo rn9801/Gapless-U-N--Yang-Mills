@@ -51,20 +51,28 @@ theorem periodicHaar_translate_preserving {L N : ℕ} [NeZero L] (a : TorusSite 
   rw [← he]
   exact measurePreserving_piCongrLeft (fun _ : TorusLink L => unitaryHaar N) e.symm
 
-theorem periodicWilson_translate_preserving {L N : ℕ} [NeZero L] (β : ℝ) (a : TorusSite L) :
-    MeasurePreserving (translatePeriodic a : TorusConfig L N → TorusConfig L N)
+theorem periodicWilson_preserving_of_logWeight {L N : ℕ} [NeZero L] (β : ℝ)
+    (T : TorusConfig L N → TorusConfig L N)
+    (ht : MeasurePreserving T (periodicHaar L N) (periodicHaar L N))
+    (hweight : ∀ U, periodicLogWeight β (T U) = periodicLogWeight β U) :
+    MeasurePreserving T
       (periodicWilson L N β) (periodicWilson L N β) := by
-  have ht := periodicHaar_translate_preserving (N := N) a
   refine ⟨ht.measurable, Measure.ext_of_lintegral _ ?_⟩
   intro g hg
   rw [lintegral_map hg ht.measurable, periodicWilson, lintegral_smul_measure,
     lintegral_smul_measure]
   have hw : Measurable (periodicWeight β : TorusConfig L N → _) := periodicWeight_measurable β
-  have hg' : Measurable (fun U => g (translatePeriodic a U)) := hg.comp ht.measurable
+  have hg' : Measurable (fun U => g (T U)) := hg.comp ht.measurable
   rw [lintegral_withDensity_eq_lintegral_mul _ hw hg', lintegral_withDensity_eq_lintegral_mul _ hw hg]
   congr 1
-  simpa only [Pi.mul_apply, periodicWeight, periodicLogWeight_translate] using
+  simpa only [Pi.mul_apply, periodicWeight, hweight] using
     ht.lintegral_comp (hw.mul hg)
+
+theorem periodicWilson_translate_preserving {L N : ℕ} [NeZero L] (β : ℝ) (a : TorusSite L) :
+    MeasurePreserving (translatePeriodic a : TorusConfig L N → TorusConfig L N)
+      (periodicWilson L N β) (periodicWilson L N β) :=
+  periodicWilson_preserving_of_logWeight β _ (periodicHaar_translate_preserving a)
+    (periodicLogWeight_translate β a)
 
 theorem extendedWilson_translate {L N : ℕ} [NeZero L] (β : ℝ) (a : Site) :
     ProbabilityMeasure.map (extendedWilson L N β) (translateConfig a) =

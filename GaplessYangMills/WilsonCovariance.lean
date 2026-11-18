@@ -38,7 +38,7 @@ private theorem plaquetteCurrent_translateConfig {N : ℕ} (a : Site) (U : Infin
 def centeredPlaquetteCurrent {N : ℕ} (m : Measure (InfiniteConfig N)) (U : InfiniteConfig N) (p : Plaquette) : ℝ :=
   plaquetteCurrent U p - ∫ V, plaquetteCurrent V p ∂m
 
-private theorem continuous_centeredPlaquetteCurrent {N : ℕ} (m : Measure (InfiniteConfig N)) (p : Plaquette) :
+theorem continuous_centeredPlaquetteCurrent {N : ℕ} (m : Measure (InfiniteConfig N)) (p : Plaquette) :
     Continuous (fun U => centeredPlaquetteCurrent m U p) :=
   (continuous_plaquetteCurrent p).sub continuous_const
 
