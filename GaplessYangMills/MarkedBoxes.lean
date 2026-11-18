@@ -189,6 +189,17 @@ def markedConnectedBoxes (M : Set OrientedEdge) (x : Site) : Set (Finset Oriente
   {S | (↑S : Set OrientedEdge) ⊆ M ∧ edgeBoxContains S x ∧
     ∃ e ∈ S, ∀ f ∈ S, ∃ w : dualEdgeGraph.Walk e f, ∀ g ∈ w.support, g ∈ S}
 
+/-- Eventually no connected set in the size cover is entirely marked. -/
+theorem eventually_notMem_markedBoxEvent_ae (μ : Measure Ω) (mark : OrientedEdge → Set Ω) (q : ℝ)
+    (hq : 0 ≤ q) (hr : (14 : ℝ) ^ 2 * q < 1)
+    (hjoint : ∀ S, μ (allBad mark S) ≤ ENNReal.ofReal (q ^ S.card)) (x : Site) :
+    ∀ᵐ ω ∂μ, ∀ᶠ n in atTop, ω ∉ markedBoxEvent mark x n := by
+  have hs := summable_markedBoxBound (by positivity : 0 ≤ (14 : ℝ) ^ 2 * q) hr
+  have hsum : (∑' n, μ (markedBoxEvent mark x n)) ≠ ⊤ :=
+    ne_top_of_le_ne_top hs.tsum_ofReal_ne_top
+      (tsum_le_tsum fun n => measure_markedBoxEvent_le μ mark q hq hjoint x n)
+  exact ae_eventually_notMem hsum
+
 /-- With a subcritical joint bound, finitely many marked connected boxes
 meet each prescribed vertex, simultaneously at all vertices. -/
 theorem markedConnectedBoxes_finite_ae (μ : Measure Ω) (mark : OrientedEdge → Set Ω) (q : ℝ)
@@ -198,11 +209,7 @@ theorem markedConnectedBoxes_finite_ae (μ : Measure Ω) (mark : OrientedEdge �
   classical
   apply ae_all_iff.mpr
   intro x
-  have hs := summable_markedBoxBound (by positivity : 0 ≤ (14 : ℝ) ^ 2 * q) hr
-  have hsum : (∑' n, μ (markedBoxEvent mark x n)) ≠ ⊤ :=
-    ne_top_of_le_ne_top hs.tsum_ofReal_ne_top
-      (tsum_le_tsum fun n => measure_markedBoxEvent_le μ mark q hq hjoint x n)
-  filter_upwards [ae_eventually_notMem hsum] with ω hω
+  filter_upwards [eventually_notMem_markedBoxEvent_ae μ mark q hq hr hjoint x] with ω hω
   obtain ⟨K, hK⟩ := eventually_atTop.mp hω
   let A := (Finset.range K).biUnion fun n => connectedBoxCover x n
   refine A.finite_toSet.subset ?_

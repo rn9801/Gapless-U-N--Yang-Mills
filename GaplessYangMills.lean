@@ -12,6 +12,7 @@ public import GaplessYangMills.ConnectedSetCounting
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
 public import GaplessYangMills.CutFluxApproximation
+public import GaplessYangMills.CutFluxBounds
 public import GaplessYangMills.CutFluxMeasurability
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
