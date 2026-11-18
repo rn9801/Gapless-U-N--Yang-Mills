@@ -6,6 +6,7 @@ import all GaplessYangMills.BadEvents
 import all GaplessYangMills.BadPlaquetteEstimate
 import all GaplessYangMills.CapGain
 import all GaplessYangMills.CapVector
+import all GaplessYangMills.CapVolume
 import all GaplessYangMills.Components
 import all GaplessYangMills.ContinuumSplit
 import all GaplessYangMills.CubeHolonomy
@@ -30,6 +31,7 @@ import all GaplessYangMills.RankOneTwist
 import all GaplessYangMills.ShiftMeans
 import all GaplessYangMills.ShortUnitaryProducts
 import all GaplessYangMills.Spectral
+import all GaplessYangMills.SphericalCap
 import all GaplessYangMills.TraceCycle
 import all GaplessYangMills.TracePowerOrder
 import all GaplessYangMills.TransferForm

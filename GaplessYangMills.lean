@@ -5,6 +5,7 @@ public import GaplessYangMills.BadEvents
 public import GaplessYangMills.BadPlaquetteEstimate
 public import GaplessYangMills.CapGain
 public import GaplessYangMills.CapVector
+public import GaplessYangMills.CapVolume
 public import GaplessYangMills.Components
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
@@ -29,6 +30,7 @@ public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.ShiftMeans
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral
+public import GaplessYangMills.SphericalCap
 public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.TracePowerOrder
 public import GaplessYangMills.TransferForm
