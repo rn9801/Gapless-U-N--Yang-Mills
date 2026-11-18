@@ -14,6 +14,7 @@ public import GaplessYangMills.DirectionalMean
 public import GaplessYangMills.Duality
 public import GaplessYangMills.Eigenangles
 public import GaplessYangMills.FiniteFilling
+public import GaplessYangMills.FiniteGibbs
 public import GaplessYangMills.FiniteWilson
 public import GaplessYangMills.Flux
 public import GaplessYangMills.Gluing

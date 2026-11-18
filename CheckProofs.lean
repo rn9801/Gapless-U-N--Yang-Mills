@@ -15,6 +15,7 @@ import all GaplessYangMills.DirectionalMean
 import all GaplessYangMills.Duality
 import all GaplessYangMills.Eigenangles
 import all GaplessYangMills.FiniteFilling
+import all GaplessYangMills.FiniteGibbs
 import all GaplessYangMills.FiniteWilson
 import all GaplessYangMills.Flux
 import all GaplessYangMills.Gluing
