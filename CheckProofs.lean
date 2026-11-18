@@ -32,6 +32,7 @@ import all GaplessYangMills.GaugeAveraging
 import all GaplessYangMills.Gluing
 import all GaplessYangMills.GoodCubes
 import all GaplessYangMills.GramTwist
+import all GaplessYangMills.InfiniteAction
 import all GaplessYangMills.InfiniteGibbs
 import all GaplessYangMills.KernelCycleEstimate
 import all GaplessYangMills.KernelQuadrature
