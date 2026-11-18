@@ -20,6 +20,8 @@ public import GaplessYangMills.Flux
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes
 public import GaplessYangMills.GramTwist
+public import GaplessYangMills.KernelCycleEstimate
+public import GaplessYangMills.KernelQuadrature
 public import GaplessYangMills.Lattice
 public import GaplessYangMills.Marginal
 public import GaplessYangMills.MarkedEdges
@@ -27,6 +29,8 @@ public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.ShiftMeans
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral
+public import GaplessYangMills.TraceCycle
+public import GaplessYangMills.TracePowerOrder
 public import GaplessYangMills.TransferForm
 public import GaplessYangMills.UnitaryLog
 public import GaplessYangMills.Ward

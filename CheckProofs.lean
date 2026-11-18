@@ -21,6 +21,8 @@ import all GaplessYangMills.Flux
 import all GaplessYangMills.Gluing
 import all GaplessYangMills.GoodCubes
 import all GaplessYangMills.GramTwist
+import all GaplessYangMills.KernelCycleEstimate
+import all GaplessYangMills.KernelQuadrature
 import all GaplessYangMills.Lattice
 import all GaplessYangMills.Marginal
 import all GaplessYangMills.MarkedEdges
@@ -28,6 +30,8 @@ import all GaplessYangMills.RankOneTwist
 import all GaplessYangMills.ShiftMeans
 import all GaplessYangMills.ShortUnitaryProducts
 import all GaplessYangMills.Spectral
+import all GaplessYangMills.TraceCycle
+import all GaplessYangMills.TracePowerOrder
 import all GaplessYangMills.TransferForm
 import all GaplessYangMills.UnitaryLog
 import all GaplessYangMills.Ward

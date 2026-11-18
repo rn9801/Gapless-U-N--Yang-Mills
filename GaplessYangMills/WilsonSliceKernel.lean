@@ -1,7 +1,10 @@
 module
 
+public import GaplessYangMills.FiniteWilson
+public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.WilsonKernel
 public import Mathlib.Analysis.Matrix.Order
+public import Mathlib.MeasureTheory.Function.LocallyIntegrable
 
 /-!
 # Product order for Wilson slice kernels
@@ -14,6 +17,7 @@ Schur products preserve the order as the indicated tangential links are twisted.
 
 namespace GaplessYangMills
 
+open MeasureTheory
 open scoped Matrix
 
 noncomputable section
@@ -115,6 +119,28 @@ private theorem sampleProduct_order {E ι : Type*} (s : Finset E)
     rw [heq]
     exact (hdiff.hadamard hs).add (hK'.hadamard hsdiff)
 
+private theorem sampleProduct_select_order {E ι : Type*} [DecidableEq E]
+    (s marked : Finset E) (U V₀ : E → Matrix ι ι ℝ)
+    (hlocal : ∀ e ∈ s, (U e).PosSemidef ∧ (V₀ e).PosSemidef ∧ (U e - V₀ e).PosSemidef) :
+    let K := sampleProduct U s
+    let K' := Matrix.of fun i j => ∏ e ∈ s, if e ∈ marked then V₀ e i j else U e i j
+    K.PosSemidef ∧ K'.PosSemidef ∧ (K - K').PosSemidef := by
+  let V e := if e ∈ marked then V₀ e else U e
+  have h := sampleProduct_order s U V (fun e hs => by
+    have he := hlocal e hs
+    by_cases hm : e ∈ marked
+    · simpa only [V, ite_eq_left hm] using he
+    · simpa only [V, ite_eq_right hm, sub_self, Matrix.PosSemidef.zero, and_true] using
+        (show (U e).PosSemidef ∧ (U e).PosSemidef from ⟨he.1, he.1⟩))
+  have hV : sampleProduct V s = Matrix.of (fun i j =>
+      ∏ e ∈ s, if e ∈ marked then V₀ e i j else U e i j) := by
+    ext i j
+    apply Finset.prod_congr rfl
+    intro e _
+    by_cases hm : e ∈ marked <;> simp only [V, hm, ite_true, ite_false]
+  rw [hV] at h
+  exact h
+
 /-- Applying twists independently to factors in a slice preserves the
 positive order for every finite sample of slice configurations. -/
 theorem fundamentalSliceSample_order {N : ℕ} {E ι : Type*} [Fintype ι] [DecidableEq E]
@@ -123,24 +149,125 @@ theorem fundamentalSliceSample_order {N : ℕ} {E ι : Type*} [Fintype ι] [Deci
     let K := Matrix.of fun i j => ∏ e ∈ s, fundamentalKernel β (A i e) (A j e)
     let K' := Matrix.of fun i j => ∏ e ∈ s, if e ∈ marked then
       twistedFundamentalKernel β (Z e) (A i e) (A j e) else fundamentalKernel β (A i e) (A j e)
+    K.PosSemidef ∧ K'.PosSemidef ∧ (K - K').PosSemidef :=
+  sampleProduct_select_order s marked
+    (fun e => Matrix.of fun i j => fundamentalKernel β (A i e) (A j e))
+    (fun e => Matrix.of fun i j => twistedFundamentalKernel β (Z e) (A i e) (A j e))
+    (fun e _ => fundamentalSample_order β hβ (fun i => A i e) (Z e))
+
+/-- The finite trace comparison also holds after a common congruence of
+the sampled kernels. A diagonal congruence inserts the slice weights. -/
+theorem trace_fundamentalSliceSamples_le {N : ℕ} {E ι J : Type*} [Fintype ι]
+    [DecidableEq ι] [DecidableEq E] [Fintype J] [Nonempty J]
+    (β : ℝ) (hβ : 0 ≤ β) (s : Finset E) (marked : J → Finset E)
+    (A : ι → E → UnitaryMatrix N) (Z : J → E → UnitaryMatrix N)
+    (D : Matrix ι ι ℝ) {n : ℕ} (hn : 0 < n) (w : List J) (hw : w.length = 2 * n) :
+    let K := Matrix.of fun i j => ∏ e ∈ s, fundamentalKernel β (A i e) (A j e)
+    let K' (t : J) := Matrix.of fun i j => ∏ e ∈ s, if e ∈ marked t then
+      twistedFundamentalKernel β (Z t e) (A i e) (A j e) else fundamentalKernel β (A i e) (A j e)
+    (w.map (fun t => Dᴴ * K' t * D)).prod.trace ≤ ((Dᴴ * K * D) ^ (2 * n)).trace := by
+  intro K K'
+  have horder (t : J) : (K' t).PosSemidef ∧ (K - K' t).PosSemidef :=
+    (fundamentalSliceSample_order β hβ s (marked t) A (Z t)).2
+  refine trace_even_word_le_reference (fun t => Dᴴ * K' t * D) (Dᴴ * K * D)
+    (fun t => (horder t).1.conjTranspose_mul_mul_same D) ?_ hn w hw
+  intro t
+  simpa only [mul_sub, sub_mul] using (horder t).2.conjTranspose_mul_mul_same D
+
+private theorem continuous_twistedFundamentalKernel {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) :
+    Continuous (fun Z => twistedFundamentalKernel β Z A B) := by
+  have k (C : UnitaryMatrix N → UnitaryMatrix N) (hc : Continuous C) :
+      Continuous (fun Z => fundamentalKernel β A (C Z)) := by
+    have h : Continuous (fun Z => (A * (C Z)⁻¹).val) :=
+      continuous_subtype_val.comp (continuous_const.mul hc.inv)
+    exact Real.continuous_exp.comp (continuous_const.mul
+      (Complex.continuous_re.comp (Continuous.matrix_trace h)))
+  exact ((continuous_const.div_const _).add
+      ((k _ (continuous_id.mul continuous_const)).div_const _)).add
+    ((k _ (continuous_id.inv.mul continuous_const)).div_const _)
+
+/-- The modified kernel averaged over a law of unitary twists. -/
+def averagedFundamentalKernel {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    (β : ℝ) (A B : UnitaryMatrix N) : ℝ :=
+  ∫ Z, twistedFundamentalKernel β Z A B ∂ν
+
+private theorem kernelQuadratic_integral {X ι : Type*} [MeasurableSpace X] {ν : Measure X}
+    (s : Finset ι) (w : ι → ℝ) (K : X → ι → ι → ℝ)
+    (h : ∀ i j, Integrable (fun x => K x i j) ν) :
+    kernelQuadratic s w (fun i j => ∫ x, K x i j ∂ν) =
+      ∫ x, kernelQuadratic s w (K x) ∂ν := by
+  have hi (i j : ι) : Integrable (fun x => w i * w j * K x i j) ν := (h i j).const_mul _
+  unfold kernelQuadratic
+  rw [integral_finsetSum s (fun i _ => integrable_finsetSum _ (fun j _ => hi i j))]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [integral_finsetSum s (fun j _ => hi i j)]
+  exact Finset.sum_congr rfl fun j _ => (integral_const_mul (w i * w j) _).symm
+
+/-- Averaging the twists preserves the order for every finite sample. -/
+theorem averagedFundamentalSample_order {N : ℕ} {ι : Type*} [Fintype ι]
+    (ν : Measure (UnitaryMatrix N)) [IsProbabilityMeasure ν] (β : ℝ) (hβ : 0 ≤ β)
+    (A : ι → UnitaryMatrix N) :
+    let K := Matrix.of (fun i j => fundamentalKernel β (A i) (A j))
+    let K' := Matrix.of (fun i j => averagedFundamentalKernel ν β (A i) (A j))
     K.PosSemidef ∧ K'.PosSemidef ∧ (K - K').PosSemidef := by
-  let U e := Matrix.of fun i j => fundamentalKernel β (A i e) (A j e)
-  let V e := if e ∈ marked then Matrix.of (fun i j =>
-    twistedFundamentalKernel β (Z e) (A i e) (A j e)) else U e
-  have h := sampleProduct_order s U V (fun e _ => by
-    have he := fundamentalSample_order β hβ (fun i => A i e) (Z e)
-    by_cases hm : e ∈ marked
-    · simpa only [U, V, ite_eq_left hm] using he
-    · simpa only [V, ite_eq_right hm, sub_self, Matrix.PosSemidef.zero, and_true] using
-        (show (U e).PosSemidef ∧ (U e).PosSemidef from ⟨he.1, he.1⟩))
-  have hV : sampleProduct V s = Matrix.of (fun i j => ∏ e ∈ s, if e ∈ marked then
-      twistedFundamentalKernel β (Z e) (A i e) (A j e) else fundamentalKernel β (A i e) (A j e)) := by
-    ext i j
-    apply Finset.prod_congr rfl
-    intro e _
-    by_cases hm : e ∈ marked <;> simp only [V, hm, ite_true, ite_false, U, Matrix.of_apply]
-  rw [hV] at h
-  exact h
+  intro K K'
+  have hsym (i j : ι) : averagedFundamentalKernel ν β (A i) (A j) =
+      averagedFundamentalKernel ν β (A j) (A i) :=
+    integral_congr_ae (Filter.Eventually.of_forall fun Z => twistedFundamentalKernel_symm β Z _ _)
+  have hint (i j : ι) : Integrable (fun Z => twistedFundamentalKernel β Z (A i) (A j)) ν :=
+    (continuous_twistedFundamentalKernel β (A i) (A j)).integrable_of_hasCompactSupport
+      (HasCompactSupport.of_compactSpace _)
+  have h (w : ι → ℝ) := fun Z => fundamentalKernel_twist_bounds β hβ Finset.univ A w Z
+  have he (w : ι → ℝ) : kernelQuadratic Finset.univ w (fun i j =>
+      averagedFundamentalKernel ν β (A i) (A j)) =
+      ∫ Z, kernelQuadratic Finset.univ w (fun i j => twistedFundamentalKernel β Z (A i) (A j)) ∂ν :=
+    kernelQuadratic_integral _ _ _ hint
+  have hupper (w : ι → ℝ) :
+      kernelQuadratic Finset.univ w (fun i j => averagedFundamentalKernel ν β (A i) (A j)) ≤
+        kernelQuadratic Finset.univ w (fun i j => fundamentalKernel β (A i) (A j)) := by
+    rw [he]
+    have hi : Integrable (fun Z => kernelQuadratic Finset.univ w
+        (fun i j => twistedFundamentalKernel β Z (A i) (A j))) ν := by
+      unfold kernelQuadratic
+      exact integrable_finsetSum _ (fun i _ =>
+        integrable_finsetSum _ (fun j _ => (hint i j).const_mul _))
+    simpa using integral_mono hi (integrable_const _) (fun Z => (h w Z).2)
+  refine ⟨posSemidef_sample _ (fun i j => fundamentalKernel_symm β _ _)
+    (fun w => wilsonKernel_nonneg (fun i => (A i).val) _ w β hβ),
+    posSemidef_sample _ hsym (fun w => (he w).symm ▸ integral_nonneg fun Z => (h w Z).1), ?_⟩
+  apply posSemidef_sample
+  · intro i j
+    exact congrArg₂ (· - ·) (fundamentalKernel_symm β (A i) (A j)) (hsym i j)
+  · intro w
+    have hd : kernelQuadratic Finset.univ w
+        (fun i j => fundamentalKernel β (A i) (A j) - averagedFundamentalKernel ν β (A i) (A j)) =
+        kernelQuadratic Finset.univ w (fun i j => fundamentalKernel β (A i) (A j)) -
+        kernelQuadratic Finset.univ w (fun i j => averagedFundamentalKernel ν β (A i) (A j)) := by
+      simp only [kernelQuadratic, mul_sub, Finset.sum_sub_distrib]
+    exact hd.symm ▸ sub_nonneg.mpr (hupper w)
+
+/-- The finite trace comparison applies to the slice factors averaged over
+the twist distribution. -/
+theorem trace_averagedSliceSamples_le {N : ℕ} {E ι J : Type*} [Fintype ι]
+    [DecidableEq ι] [DecidableEq E] [Fintype J] [Nonempty J]
+    (β : ℝ) (hβ : 0 ≤ β) (s : Finset E) (marked : J → Finset E)
+    (A : ι → E → UnitaryMatrix N) (ν : Measure (UnitaryMatrix N)) [IsProbabilityMeasure ν]
+    (D : Matrix ι ι ℝ) {n : ℕ} (hn : 0 < n) (w : List J) (hw : w.length = 2 * n) :
+    let K := Matrix.of fun i j => ∏ e ∈ s, fundamentalKernel β (A i e) (A j e)
+    let K' (t : J) := Matrix.of fun i j => ∏ e ∈ s, if e ∈ marked t then
+      averagedFundamentalKernel ν β (A i e) (A j e) else fundamentalKernel β (A i e) (A j e)
+    (w.map (fun t => Dᴴ * K' t * D)).prod.trace ≤ ((Dᴴ * K * D) ^ (2 * n)).trace := by
+  intro K K'
+  have horder (t : J) : (K' t).PosSemidef ∧ (K - K' t).PosSemidef := by
+    exact (sampleProduct_select_order s (marked t)
+      (fun e => Matrix.of fun i j => fundamentalKernel β (A i e) (A j e))
+      (fun e => Matrix.of fun i j => averagedFundamentalKernel ν β (A i e) (A j e))
+      (fun e _ => averagedFundamentalSample_order ν β hβ (fun i => A i e))).2
+  refine trace_even_word_le_reference (fun t => Dᴴ * K' t * D) (Dᴴ * K * D)
+    (fun t => (horder t).1.conjTranspose_mul_mul_same D) ?_ hn w hw
+  intro t
+  simpa only [mul_sub, sub_mul] using (horder t).2.conjTranspose_mul_mul_same D
 
 end
 
