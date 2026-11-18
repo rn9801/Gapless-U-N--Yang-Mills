@@ -8,6 +8,7 @@ import all GaplessYangMills.CapGain
 import all GaplessYangMills.CapVector
 import all GaplessYangMills.CapVolume
 import all GaplessYangMills.Components
+import all GaplessYangMills.ConnectedSetCounting
 import all GaplessYangMills.ContinuumSplit
 import all GaplessYangMills.CubeHolonomy
 import all GaplessYangMills.Decay
@@ -31,6 +32,7 @@ import all GaplessYangMills.MarkedEdges
 import all GaplessYangMills.PeriodicKernelCycle
 import all GaplessYangMills.PeriodicWilsonComparison
 import all GaplessYangMills.RankOneTwist
+import all GaplessYangMills.RankOneTwistLaw
 import all GaplessYangMills.ShiftMeans
 import all GaplessYangMills.ShortUnitaryProducts
 import all GaplessYangMills.Spectral
@@ -40,9 +42,11 @@ import all GaplessYangMills.TraceCycle
 import all GaplessYangMills.TracePowerOrder
 import all GaplessYangMills.TransferForm
 import all GaplessYangMills.UnitaryLog
+import all GaplessYangMills.UnitarySphere
 import all GaplessYangMills.Ward
 import all GaplessYangMills.WeakCoupling
 import all GaplessYangMills.Wilson
+import all GaplessYangMills.WilsonBadPlaquettes
 import all GaplessYangMills.WilsonKernel
 import all GaplessYangMills.WilsonLimits
 import all GaplessYangMills.WilsonSliceKernel

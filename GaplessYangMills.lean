@@ -7,6 +7,7 @@ public import GaplessYangMills.CapGain
 public import GaplessYangMills.CapVector
 public import GaplessYangMills.CapVolume
 public import GaplessYangMills.Components
+public import GaplessYangMills.ConnectedSetCounting
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
 public import GaplessYangMills.Decay
@@ -30,6 +31,7 @@ public import GaplessYangMills.MarkedEdges
 public import GaplessYangMills.PeriodicKernelCycle
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist
+public import GaplessYangMills.RankOneTwistLaw
 public import GaplessYangMills.ShiftMeans
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral
@@ -39,9 +41,11 @@ public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.TracePowerOrder
 public import GaplessYangMills.TransferForm
 public import GaplessYangMills.UnitaryLog
+public import GaplessYangMills.UnitarySphere
 public import GaplessYangMills.Ward
 public import GaplessYangMills.WeakCoupling
 public import GaplessYangMills.Wilson
+public import GaplessYangMills.WilsonBadPlaquettes
 public import GaplessYangMills.WilsonKernel
 public import GaplessYangMills.WilsonLimits
 public import GaplessYangMills.WilsonSliceKernel

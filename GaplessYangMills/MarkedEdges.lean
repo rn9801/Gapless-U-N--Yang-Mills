@@ -77,7 +77,7 @@ private theorem faceCubes_card_le (p : Plaquette) : (faceCubes p).card ≤ 4 := 
 @[expose] def allBad {P Ω : Type*} (bad : P → Set Ω) (S : Finset P) : Set Ω :=
   {ω | ∀ p ∈ S, ω ∈ bad p}
 
-def allMarked {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset DualEdge) : Set Ω :=
+@[expose] def allMarked {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset DualEdge) : Set Ω :=
   {ω | ∀ e ∈ S, ∃ p ∈ cubeFaces e, ω ∈ bad p}
 
 /-- A joint bound with exponent `a` per bad face gives the joint marked-edge
