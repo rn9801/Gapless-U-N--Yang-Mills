@@ -7,6 +7,7 @@ import all GaplessYangMills.BadPlaquetteEstimate
 import all GaplessYangMills.CapGain
 import all GaplessYangMills.CapVector
 import all GaplessYangMills.CapVolume
+import all GaplessYangMills.ComponentFlux
 import all GaplessYangMills.Components
 import all GaplessYangMills.ConnectedSetCounting
 import all GaplessYangMills.ContinuumSplit
