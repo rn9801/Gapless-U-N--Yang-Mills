@@ -2,17 +2,40 @@ module
 
 import GaplessYangMills
 import all GaplessYangMills.Action
+import all GaplessYangMills.BadEvents
+import all GaplessYangMills.BadPlaquetteEstimate
+import all GaplessYangMills.CapGain
+import all GaplessYangMills.CapVector
+import all GaplessYangMills.Components
+import all GaplessYangMills.ContinuumSplit
+import all GaplessYangMills.CubeHolonomy
 import all GaplessYangMills.Decay
+import all GaplessYangMills.DefectBounds
 import all GaplessYangMills.DirectionalMean
+import all GaplessYangMills.Duality
+import all GaplessYangMills.Eigenangles
 import all GaplessYangMills.FiniteFilling
+import all GaplessYangMills.FiniteWilson
 import all GaplessYangMills.Flux
+import all GaplessYangMills.Gluing
+import all GaplessYangMills.GoodCubes
+import all GaplessYangMills.GramTwist
 import all GaplessYangMills.Lattice
 import all GaplessYangMills.Marginal
 import all GaplessYangMills.MarkedEdges
+import all GaplessYangMills.RankOneTwist
+import all GaplessYangMills.ShiftMeans
+import all GaplessYangMills.ShortUnitaryProducts
 import all GaplessYangMills.Spectral
+import all GaplessYangMills.TransferForm
+import all GaplessYangMills.UnitaryLog
 import all GaplessYangMills.Ward
 import all GaplessYangMills.WeakCoupling
 import all GaplessYangMills.Wilson
+import all GaplessYangMills.WilsonKernel
+import all GaplessYangMills.WilsonLimits
+import all GaplessYangMills.WilsonSliceKernel
+import all GaplessYangMills.WilsonTranslations
 meta import Lean.Elab.Command
 meta import Lean.Util.CollectAxioms
 

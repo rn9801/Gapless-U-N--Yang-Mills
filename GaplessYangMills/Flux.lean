@@ -117,6 +117,15 @@ theorem liftFlux_central_shift {N : ℕ} (hN : 0 < N) (η : TwoForm ℝ) (θ : A
     Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul]
   rw [mul_div_cancel₀ _ hn]
 
+theorem repairFlux_add_closed (fill : ThreeForm ℤ → TwoForm ℤ)
+    (a f : TwoForm ℝ) (hf : d₂ f = 0) :
+    repairFlux fill (a + f) = repairFlux fill a + f := by
+  have hdefect : defect (a + f) = defect a := by
+    unfold defect
+    rw [d₂_add, hf, add_zero]
+  simp only [repairFlux, hdefect]
+  abel
+
 /-- The exact cut-shift equality preceding equation (5), for any fixed rule
 which fills a given integer current. The perturbation `f` is already the total
 plaquette angle shift and includes the factor `t` in the paper. -/
@@ -126,12 +135,7 @@ theorem repairFlux_central_shift {N : ℕ} (hN : 0 < N)
     repairFlux fill (liftFlux η (shiftAngles θ f)) =
       repairFlux fill (liftFlux (shiftCuts η f N) θ) + f := by
   rw [liftFlux_central_shift hN]
-  have hdefect : defect (liftFlux (shiftCuts η f N) θ + f) =
-      defect (liftFlux (shiftCuts η f N) θ) := by
-    unfold defect
-    rw [d₂_add, hf, add_zero]
-  simp only [repairFlux, hdefect]
-  abel
+  exact repairFlux_add_closed fill _ f hf
 
 end
 

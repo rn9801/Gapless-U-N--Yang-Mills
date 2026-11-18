@@ -19,10 +19,14 @@ namespace GaplessYangMills
 open MeasureTheory
 open scoped BigOperators ENNReal
 
+instance faceFintype : Fintype Face where
+  elems := {.xy, .xz, .xw, .yz, .yw, .zw}
+  complete I := by cases I <;> simp
+
 abbrev Plaquette := Face × Site
 abbrev DualEdge := Cube × Site
 
-private def cubeFaceList : DualEdge → List Plaquette
+@[expose] def cubeFaceList : DualEdge → List Plaquette
   | (.xyz, x) => [(.yz, x), (.yz, x + step 0), (.xz, x), (.xz, x + step 1),
       (.xy, x), (.xy, x + step 2)]
   | (.xyw, x) => [(.yw, x), (.yw, x + step 0), (.xw, x), (.xw, x + step 1),
@@ -45,6 +49,11 @@ noncomputable def cubeFaces (e : DualEdge) : Finset Plaquette := by
   classical
   exact (cubeFaceList e).toFinset
 
+theorem mem_cubeFaces_list {p : Plaquette} (e : DualEdge) :
+    p ∈ cubeFaces e ↔ p ∈ cubeFaceList e := by
+  classical
+  simp [cubeFaces]
+
 /-- The four cubes incident to a primal face. -/
 noncomputable def faceCubes (p : Plaquette) : Finset DualEdge := by
   classical
@@ -65,7 +74,7 @@ private theorem faceCubes_card_le (p : Plaquette) : (faceCubes p).card ≤ 4 := 
   obtain ⟨I, x⟩ := p
   exact (List.toFinset_card_le _).trans (by cases I <;> simp [faceCubeList])
 
-def allBad {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset Plaquette) : Set Ω :=
+@[expose] def allBad {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset Plaquette) : Set Ω :=
   {ω | ∀ p ∈ S, ω ∈ bad p}
 
 def allMarked {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset DualEdge) : Set Ω :=
