@@ -12,10 +12,12 @@ public import GaplessYangMills.ConnectedSetCounting
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
 public import GaplessYangMills.CutAverages
+public import GaplessYangMills.CutBlock
 public import GaplessYangMills.CutFluxApproximation
 public import GaplessYangMills.CutFluxBounds
 public import GaplessYangMills.CutFluxMeasurability
 public import GaplessYangMills.CutLaw
+public import GaplessYangMills.CutResponse
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
 public import GaplessYangMills.DirectionalMean
