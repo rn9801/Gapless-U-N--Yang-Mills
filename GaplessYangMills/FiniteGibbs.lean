@@ -170,7 +170,7 @@ def periodicBoundaryLinks {L : ℕ} [NeZero L] (p : Face × TorusSite L) :
   {(p.1.axes.1, p.2), (p.1.axes.2, p.2 + torusStep L p.1.axes.1),
     (p.1.axes.1, p.2 + torusStep L p.1.axes.2), (p.1.axes.2, p.2)}
 
-private theorem periodicHolonomy_congr {L N : ℕ} [NeZero L] {U V : TorusConfig L N}
+theorem periodicHolonomy_congr {L N : ℕ} [NeZero L] {U V : TorusConfig L N}
     (p : Face × TorusSite L) (h : ∀ e ∈ periodicBoundaryLinks p, U e = V e) :
     periodicHolonomy U p.1 p.2 = periodicHolonomy V p.1 p.2 := by
   have h₁ := h (p.1.axes.1, p.2) (by simp [periodicBoundaryLinks])

@@ -49,11 +49,14 @@ import all GaplessYangMills.MarkedComponents
 import all GaplessYangMills.MarkedEdges
 import all GaplessYangMills.MeasurableRepair
 import all GaplessYangMills.PeriodicKernelCycle
+import all GaplessYangMills.PeriodicSiteReflection
 import all GaplessYangMills.PeriodicWilsonComparison
 import all GaplessYangMills.RankOneTwist
 import all GaplessYangMills.RankOneTwistLaw
 import all GaplessYangMills.ReflectionHilbert
+import all GaplessYangMills.ReflectionProduct
 import all GaplessYangMills.ShiftMeans
+import all GaplessYangMills.SiteReflectionGeometry
 import all GaplessYangMills.ShortUnitaryProducts
 import all GaplessYangMills.Spectral
 import all GaplessYangMills.SphericalCap

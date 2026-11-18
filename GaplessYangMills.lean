@@ -48,11 +48,14 @@ public import GaplessYangMills.MarkedComponents
 public import GaplessYangMills.MarkedEdges
 public import GaplessYangMills.MeasurableRepair
 public import GaplessYangMills.PeriodicKernelCycle
+public import GaplessYangMills.PeriodicSiteReflection
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.RankOneTwistLaw
 public import GaplessYangMills.ReflectionHilbert
+public import GaplessYangMills.ReflectionProduct
 public import GaplessYangMills.ShiftMeans
+public import GaplessYangMills.SiteReflectionGeometry
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral
 public import GaplessYangMills.SphericalCap
