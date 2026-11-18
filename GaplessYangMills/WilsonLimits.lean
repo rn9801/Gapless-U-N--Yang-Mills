@@ -60,19 +60,26 @@ theorem exists_periodicWilson_limit (N : ℕ) (β : ℝ) :
     (x := fun n => extendedWilson (evenLength n) N β) (fun _ => Set.mem_univ _)
   exact ⟨μ, l, hl, hμ⟩
 
-/-- An upper bound on an open cylinder event passes to the weak limit. -/
-theorem weakLimit_open_bound {N : ℕ} (μs : ℕ → ProbabilityMeasure (InfiniteConfig N))
+/-- An eventual upper bound on an open event passes to the weak limit. -/
+theorem weakLimit_open_bound_eventually {N : ℕ} (μs : ℕ → ProbabilityMeasure (InfiniteConfig N))
     (μ : ProbabilityMeasure (InfiniteConfig N)) (hμ : Tendsto μs atTop (𝓝 μ))
     (E : Set (InfiniteConfig N)) (hE : IsOpen E) (C : ℝ≥0∞)
-    (hC : ∀ n, (μs n : Measure (InfiniteConfig N)) E ≤ C) :
+    (hC : ∀ᶠ n in atTop, (μs n : Measure (InfiniteConfig N)) E ≤ C) :
     (μ : Measure (InfiniteConfig N)) E ≤ C := by
   refine (ProbabilityMeasure.le_liminf_measure_open_of_tendsto hμ hE).trans ?_
   apply liminf_le_of_le
   · use 0
     simp
   · intro c hc
-    obtain ⟨n, hn⟩ := hc.exists
-    exact hn.trans (hC n)
+    obtain ⟨_, hn, hb⟩ := (hc.and hC).exists
+    exact hn.trans hb
+
+theorem weakLimit_open_bound {N : ℕ} (μs : ℕ → ProbabilityMeasure (InfiniteConfig N))
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hμ : Tendsto μs atTop (𝓝 μ))
+    (E : Set (InfiniteConfig N)) (hE : IsOpen E) (C : ℝ≥0∞)
+    (hC : ∀ n, (μs n : Measure (InfiniteConfig N)) E ≤ C) :
+    (μ : Measure (InfiniteConfig N)) E ≤ C :=
+  weakLimit_open_bound_eventually μs μ hμ E hE C (Eventually.of_forall hC)
 
 end
 

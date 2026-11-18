@@ -1,11 +1,13 @@
 module
 
 public import GaplessYangMills.FiniteWilson
+public import GaplessYangMills.GaugeAveraging
 public import GaplessYangMills.KernelCycleEstimate
 public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.WilsonKernel
 public import Mathlib.Analysis.Matrix.Order
 public import Mathlib.MeasureTheory.Function.LocallyIntegrable
+public import Mathlib.Tactic.Group
 
 /-!
 # Product order for Wilson slice kernels
@@ -175,7 +177,7 @@ theorem trace_fundamentalSliceSamples_le {N : ℕ} {E ι J : Type*} [Fintype ι]
   intro t
   simpa only [mul_sub, sub_mul] using (horder t).2.conjTranspose_mul_mul_same D
 
-private theorem continuous_fundamentalKernel {N : ℕ} (β : ℝ) :
+theorem continuous_fundamentalKernel {N : ℕ} (β : ℝ) :
     Continuous (fun p : UnitaryMatrix N × UnitaryMatrix N => fundamentalKernel β p.1 p.2) := by
   have h : Continuous (fun p : UnitaryMatrix N × UnitaryMatrix N => (p.1 * p.2⁻¹).val) :=
     continuous_subtype_val.comp (continuous_fst.mul continuous_snd.inv)
@@ -195,7 +197,7 @@ private theorem continuous_twistedFundamentalKernel_all {N : ℕ} (β : ℝ) :
     h.comp continuous_fst
   exact ((h₀.div_const 2).add ((h.comp hp).div_const 4)).add ((h.comp hm).div_const 4)
 
-private theorem continuous_twistedFundamentalKernel {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) :
+theorem continuous_twistedFundamentalKernel {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) :
     Continuous (fun Z => twistedFundamentalKernel β Z A B) := by
   let U := UnitaryMatrix N
   let g (Z : U) : (U × U) × U := ((A, B), Z)
@@ -207,33 +209,93 @@ def averagedFundamentalKernel {N : ℕ} (ν : Measure (UnitaryMatrix N))
     (β : ℝ) (A B : UnitaryMatrix N) : ℝ :=
   ∫ Z, twistedFundamentalKernel β Z A B ∂ν
 
-private theorem continuous_averagedFundamentalKernel {N : ℕ} (ν : Measure (UnitaryMatrix N))
+theorem continuous_averagedFundamentalKernel {N : ℕ} (ν : Measure (UnitaryMatrix N))
     [IsProbabilityMeasure ν] (β : ℝ) :
     Continuous (fun p : UnitaryMatrix N × UnitaryMatrix N => averagedFundamentalKernel ν β p.1 p.2) := by
-  apply continuous_iff_continuousAt.mpr
-  intro p
-  rw [Metric.continuousAt_iff]
-  intro ε hε
-  have h := CompactSpace.uniformContinuous_of_continuous
-    (continuous_twistedFundamentalKernel_all (N := N) β)
-  obtain ⟨δ, hδ, hu⟩ := Metric.uniformContinuous_iff.mp h (ε / 2) (by linarith)
-  refine ⟨δ, hδ, fun q hq => ?_⟩
-  have hint (a : UnitaryMatrix N × UnitaryMatrix N) :
-      Integrable (fun Z => twistedFundamentalKernel β Z a.1 a.2) ν :=
-    (continuous_twistedFundamentalKernel β a.1 a.2).integrable_of_hasCompactSupport
+  exact continuous_integral_parameter ν (continuous_twistedFundamentalKernel_all β)
+
+theorem averagedFundamentalKernel_symm {N : ℕ} (ν : Measure (UnitaryMatrix N)) (β : ℝ)
+    (A B : UnitaryMatrix N) :
+    averagedFundamentalKernel ν β A B = averagedFundamentalKernel ν β B A := by
+  simp only [averagedFundamentalKernel]
+  exact integral_congr_ae (Filter.Eventually.of_forall (fun Z =>
+    twistedFundamentalKernel_symm β Z A B))
+
+theorem averagedFundamentalKernel_rightInvariant {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    (β : ℝ) (Q A B : UnitaryMatrix N) :
+    averagedFundamentalKernel ν β (A * Q) (B * Q) = averagedFundamentalKernel ν β A B := by
+  simp only [averagedFundamentalKernel, twistedFundamentalKernel,
+    ← mul_assoc, fundamentalKernel_rightInvariant]
+
+theorem averagedFundamentalKernel_leftInvariant {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    (hν : ∀ Q : UnitaryMatrix N, MeasurePreserving (fun Z => Q * Z * Q⁻¹) ν ν)
+    (β : ℝ) (Q A B : UnitaryMatrix N) :
+    averagedFundamentalKernel ν β (Q * A) (Q * B) = averagedFundamentalKernel ν β A B := by
+  have hZ (Z : UnitaryMatrix N) :
+      twistedFundamentalKernel β (Q * Z * Q⁻¹) (Q * A) (Q * B) =
+        twistedFundamentalKernel β Z A B := by
+    have hplus : (Q * Z * Q⁻¹) * (Q * B) = Q * (Z * B) := by group
+    have hminus : (Q * Z * Q⁻¹)⁻¹ * (Q * B) = Q * (Z⁻¹ * B) := by group
+    simp only [twistedFundamentalKernel, hplus, hminus, fundamentalKernel_leftInvariant]
+  unfold averagedFundamentalKernel
+  have hcomp := integral_map (μ := ν) (hν Q).measurable.aemeasurable
+    (continuous_twistedFundamentalKernel β (Q * A) (Q * B)).aestronglyMeasurable
+  rw [(hν Q).map_eq] at hcomp
+  rw [hcomp]
+  exact integral_congr_ae (Filter.Eventually.of_forall hZ)
+
+theorem averagedFundamentalKernel_pos {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    [IsProbabilityMeasure ν] (β : ℝ) (A B : UnitaryMatrix N) :
+    0 < averagedFundamentalKernel ν β A B := by
+  have hint : Integrable (fun Z => twistedFundamentalKernel β Z A B) ν :=
+    (continuous_twistedFundamentalKernel β A B).integrable_of_hasCompactSupport
       (HasCompactSupport.of_compactSpace _)
-  rw [dist_eq_norm, averagedFundamentalKernel, averagedFundamentalKernel,
-    ← integral_sub (hint q) (hint p)]
-  have hbound (Z : UnitaryMatrix N) :
-      ‖twistedFundamentalKernel β Z q.1 q.2 - twistedFundamentalKernel β Z p.1 p.2‖ ≤ ε / 2 := by
-    have hx : dist (q, Z) (p, Z) < δ := by
-      change max (dist q p) (dist Z Z) < δ
-      rw [dist_self, max_lt_iff]
-      exact ⟨hq, hδ⟩
-    simpa only [dist_eq_norm] using (hu hx).le
-  have hb := norm_integral_le_of_norm_le_const (μ := ν) (Filter.Eventually.of_forall hbound)
-  exact (by simpa using hb : ‖∫ Z, twistedFundamentalKernel β Z q.1 q.2 -
-    twistedFundamentalKernel β Z p.1 p.2 ∂ν‖ ≤ ε / 2).trans_lt (by linarith)
+  have h := integral_mono (integrable_const (μ := ν) (fundamentalKernel β A B / 2))
+    hint (fun Z => by
+      unfold twistedFundamentalKernel
+      linarith [fundamentalKernel_pos β A (Z * B), fundamentalKernel_pos β A (Z⁻¹ * B)])
+  have hb : fundamentalKernel β A B / 2 ≤ averagedFundamentalKernel ν β A B := by
+    simpa only [averagedFundamentalKernel, integral_const, probReal_univ, one_smul] using h
+  exact (half_pos (fundamentalKernel_pos β A B)).trans_le hb
+
+/-- The ratio of the modified and unmodified factors at a plaquette. -/
+def wilsonTwistMultiplier {N : ℕ} (ν : Measure (UnitaryMatrix N)) (β : ℝ)
+    (P : UnitaryMatrix N) : ℝ :=
+  averagedFundamentalKernel ν β P 1 / fundamentalKernel β P 1
+
+theorem wilsonTwistMultiplier_pos {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    [IsProbabilityMeasure ν] (β : ℝ) (P : UnitaryMatrix N) :
+    0 < wilsonTwistMultiplier ν β P :=
+  div_pos (averagedFundamentalKernel_pos ν β P 1) (fundamentalKernel_pos β P 1)
+
+theorem continuous_wilsonTwistMultiplier {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    [IsProbabilityMeasure ν] (β : ℝ) : Continuous (wilsonTwistMultiplier ν β) := by
+  have hP : Continuous (fun P : UnitaryMatrix N => (P, (1 : UnitaryMatrix N))) :=
+    continuous_id.prodMk continuous_const
+  have hn : Continuous (fun P : UnitaryMatrix N => averagedFundamentalKernel ν β P 1) := by
+    simpa only [Function.comp_def] using (continuous_averagedFundamentalKernel ν β).comp hP
+  have hd : Continuous (fun P : UnitaryMatrix N => fundamentalKernel β P 1) := by
+    simpa only [Function.comp_def] using (continuous_fundamentalKernel (N := N) β).comp hP
+  unfold wilsonTwistMultiplier
+  exact hn.div hd (fun P => (fundamentalKernel_pos β P 1).ne')
+
+theorem fundamentalKernel_mul_wilsonTwistMultiplier {N : ℕ} (ν : Measure (UnitaryMatrix N))
+    (β : ℝ) (A B : UnitaryMatrix N) :
+    fundamentalKernel β A B * wilsonTwistMultiplier ν β (A * B⁻¹) =
+      averagedFundamentalKernel ν β A B := by
+  have h := fundamentalKernel_rightInvariant β B⁻¹ A B
+  have h' := averagedFundamentalKernel_rightInvariant ν β B⁻¹ A B
+  rw [mul_inv_cancel] at h h'
+  rw [wilsonTwistMultiplier, h, h', mul_div_cancel₀ _ (fundamentalKernel_pos β A B).ne']
+
+theorem wilsonTwistMultiplier_inv {N : ℕ} (ν : Measure (UnitaryMatrix N)) (β : ℝ)
+    (P : UnitaryMatrix N) : wilsonTwistMultiplier ν β P⁻¹ = wilsonTwistMultiplier ν β P := by
+  have h := fundamentalKernel_rightInvariant β P P⁻¹ 1
+  have h' := averagedFundamentalKernel_rightInvariant ν β P P⁻¹ 1
+  simp only [inv_mul_cancel, one_mul] at h h'
+  rw [wilsonTwistMultiplier, ← h, ← h', fundamentalKernel_symm β 1 P,
+    averagedFundamentalKernel_symm ν β 1 P]
+  rfl
 
 private theorem kernelQuadratic_integral {X ι : Type*} [MeasurableSpace X] {ν : Measure X}
     (s : Finset ι) (w : ι → ℝ) (K : X → ι → ι → ℝ)
@@ -313,9 +375,48 @@ theorem trace_averagedSliceSamples_le {N : ℕ} {E ι J : Type*} [Fintype ι]
   intro t
   simpa only [mul_sub, sub_mul] using (horder t).2.conjTranspose_mul_mul_same D
 
+/-- The product of the single-link kernels, modified at the selected links. -/
+def averagedWilsonSlice {N : ℕ} {E : Type*} [DecidableEq E]
+    (ν : Measure (UnitaryMatrix N)) (β : ℝ) (s marked : Finset E)
+    (a b : E → UnitaryMatrix N) : ℝ :=
+  ∏ e ∈ s, if e ∈ marked then averagedFundamentalKernel ν β (a e) (b e)
+    else fundamentalKernel β (a e) (b e)
+
+theorem continuous_averagedWilsonSlice {N : ℕ} {E : Type*} [DecidableEq E]
+    (ν : Measure (UnitaryMatrix N)) [IsProbabilityMeasure ν] (β : ℝ) (s marked : Finset E) :
+    Continuous (fun p : (E → UnitaryMatrix N) × (E → UnitaryMatrix N) =>
+      averagedWilsonSlice ν β s marked p.1 p.2) := by
+  unfold averagedWilsonSlice
+  apply continuous_finsetProd
+  intro e _
+  have he : Continuous (fun p : (E → UnitaryMatrix N) × (E → UnitaryMatrix N) =>
+      (p.1 e, p.2 e)) :=
+    ((continuous_apply e).comp continuous_fst).prodMk ((continuous_apply e).comp continuous_snd)
+  by_cases hm : e ∈ marked
+  · simpa only [ite_eq_left hm, Function.comp_def] using
+      (continuous_averagedFundamentalKernel ν β).comp he
+  · simpa only [ite_eq_right hm, Function.comp_def] using
+      (continuous_fundamentalKernel β).comp he
+
+theorem averagedWilsonSlice_positive_order {N : ℕ} {E : Type*} [DecidableEq E]
+    (ν : Measure (UnitaryMatrix N)) [IsProbabilityMeasure ν] (β : ℝ) (hβ : 0 ≤ β)
+    (s marked : Finset E) :
+    PositiveKernel (averagedWilsonSlice ν β s marked) ∧
+      PositiveKernel (fun a b => averagedWilsonSlice ν β s ∅ a b -
+        averagedWilsonSlice ν β s marked a b) := by
+  have h (m : ℕ) (v : Fin m → E → UnitaryMatrix N) :=
+    sampleProduct_select_order s marked
+      (fun e => Matrix.of fun a b => fundamentalKernel β (v a e) (v b e))
+      (fun e => Matrix.of fun a b => averagedFundamentalKernel ν β (v a e) (v b e))
+      (fun e _ => averagedFundamentalSample_order ν β hβ (fun a => v a e))
+  refine ⟨fun m v => (h m v).2.1, fun m v => ?_⟩
+  have hdiff := (h m v).2.2
+  convert hdiff using 1
+  ext i j
+  simp [sampleProduct, averagedWilsonSlice]
+
 /-- The unprojected Wilson slice comparison with a continuous spatial
-weight and averaged twists. Each normal-link gauge average is a separate
-operation on these kernels. -/
+weight and averaged twists. -/
 theorem kernelCycleIntegral_averagedWilsonSlices_le {N : ℕ} {E J : Type*}
     [Fintype E] [DecidableEq E] [Fintype J] [Nonempty J]
     (β : ℝ) (hβ : 0 ≤ β) (s : Finset E) (marked : J → Finset E)
@@ -331,46 +432,20 @@ theorem kernelCycleIntegral_averagedWilsonSlices_le {N : ℕ} {E J : Type*}
     kernelCycleIntegral μ (K j) (js.map K) ≤
       kernelCycleIntegral μ K₀ (List.replicate js.length K₀) := by
   intro K₀ K
-  let X := E → UnitaryMatrix N
-  have he (e : E) : Continuous (fun p : X × X => (p.1 e, p.2 e)) :=
-    ((continuous_apply e).comp continuous_fst).prodMk ((continuous_apply e).comp continuous_snd)
-  have hc₀ : Continuous (fun p : X × X => K₀ p.1 p.2) := by
-    exact ((hw.comp continuous_fst).mul (continuous_finsetProd s (fun e _ =>
-      (continuous_fundamentalKernel β).comp (he e)))).mul (hw.comp continuous_snd)
-  have hct (t : J) : Continuous (fun p : X × X => K t p.1 p.2) := by
-    have hs : Continuous (fun p : X × X => ∏ e ∈ s, if e ∈ marked t then
-        averagedFundamentalKernel ν β (p.1 e) (p.2 e) else fundamentalKernel β (p.1 e) (p.2 e)) := by
-      apply continuous_finsetProd s
-      intro e _
-      by_cases hm : e ∈ marked t
-      · simpa only [ite_eq_left hm, Function.comp_def] using (continuous_averagedFundamentalKernel ν β).comp (he e)
-      · simpa only [ite_eq_right hm, Function.comp_def] using (continuous_fundamentalKernel β).comp (he e)
-    exact ((hw.comp continuous_fst).mul hs).mul (hw.comp continuous_snd)
-  have horder (m : ℕ) (v : Fin m → X) (t : J) :
-      (Matrix.of fun a b => K t (v a) (v b)).PosSemidef ∧
-        ((Matrix.of fun a b => K₀ (v a) (v b)) -
-          (Matrix.of fun a b => K t (v a) (v b))).PosSemidef := by
-    let U e := Matrix.of fun a b => fundamentalKernel β (v a e) (v b e)
-    let V e := Matrix.of fun a b => averagedFundamentalKernel ν β (v a e) (v b e)
-    let D := Matrix.diagonal fun a : Fin m => w (v a)
-    have hD : Dᴴ = D := by simp [D]
-    let K₁ := Matrix.of fun a b => ∏ e ∈ s, if e ∈ marked t then V e a b else U e a b
-    have hraw : K₁.PosSemidef ∧ (sampleProduct U s - K₁).PosSemidef :=
-      (sampleProduct_select_order s (marked t) U V
-        (fun e _ => averagedFundamentalSample_order ν β hβ (fun a => v a e))).2
-    have hmul (M : Matrix (Fin m) (Fin m) ℝ) : D * M * D =
-        Matrix.of (fun a b => w (v a) * M a b * w (v b)) := by
-      ext a b
-      rw [Matrix.mul_diagonal, Matrix.diagonal_mul, Matrix.of_apply]
-    have hs₀ : D * sampleProduct U s * D = Matrix.of (fun a b => K₀ (v a) (v b)) :=
-      hmul _
-    have hs₁ : D * K₁ * D = Matrix.of (fun a b => K t (v a) (v b)) :=
-      hmul _
-    refine ⟨?_, ?_⟩
-    · simpa only [hD, hs₁] using hraw.1.conjTranspose_mul_mul_same D
-    · simpa only [hD, mul_sub, sub_mul, hs₀, hs₁] using hraw.2.conjTranspose_mul_mul_same D
-  exact kernelCycleIntegral_le_of_sampleOrder μ K K₀ hct hc₀
-    (fun m v t => (horder m v t).1) (fun m v t => (horder m v t).2) j js hn hlen
+  have h₀ : weightedKernel w (averagedWilsonSlice ν β s ∅) = K₀ := by
+    funext a b
+    simp [weightedKernel, averagedWilsonSlice, K₀]
+  have hc₀ := continuous_weightedKernel hw (continuous_averagedWilsonSlice ν β s ∅)
+  rw [h₀] at hc₀
+  refine kernelCycleIntegral_le_of_sampleOrder μ K K₀
+    (fun t => continuous_weightedKernel hw (continuous_averagedWilsonSlice ν β s (marked t)))
+    hc₀ (fun m v t => ((averagedWilsonSlice_positive_order ν β hβ s (marked t)).1.weighted w) m v)
+    (fun m v t => ?_) j js hn hlen
+  have h := ((averagedWilsonSlice_positive_order ν β hβ s (marked t)).2.weighted w) m v
+  convert h using 1
+  ext a b
+  rw [Matrix.sub_apply, Matrix.of_apply, Matrix.of_apply, Matrix.of_apply, weightedKernel_sub, h₀]
+  rfl
 
 end
 

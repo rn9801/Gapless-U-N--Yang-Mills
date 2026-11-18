@@ -1,6 +1,7 @@
 module
 
 public import GaplessYangMills.WilsonKernel
+public import Mathlib.Topology.Instances.Matrix
 
 /-!
 # Rank-one unitary twists
@@ -69,6 +70,37 @@ theorem trace_rankOneTwist_mul {N : ℕ} (v : Fin N → ℂ) (hv : star v ⬝ᵥ
   change ((1 + ((z : ℂ) - 1) • lineProjection v) * A).trace = _
   rw [add_mul, one_mul, smul_mul_assoc, Matrix.trace_add, Matrix.trace_smul,
     trace_lineProjection_mul, smul_eq_mul]
+
+theorem rankOneTwist_inv {N : ℕ} (v : Fin N → ℂ) (hv : star v ⬝ᵥ v = 1) (z : Circle) :
+    (rankOneTwist v hv z)⁻¹ = rankOneTwist v hv z⁻¹ := by
+  apply Subtype.ext
+  change star (1 + ((z : ℂ) - 1) • lineProjection v) =
+    1 + ((z⁻¹ : Circle) - (1 : ℂ)) • lineProjection v
+  rw [star_add, star_one, star_smul, star_sub, star_one]
+  change 1 + (star (z : ℂ) - 1) • (lineProjection v)ᴴ =
+    1 + (((z⁻¹ : Circle) : ℂ) - 1) • lineProjection v
+  rw [lineProjection_star, Circle.coe_inv_eq_conj, Complex.star_def]
+
+theorem rankOneTwist_mulVec_conj {N : ℕ} (Q : UnitaryMatrix N) (v : Fin N → ℂ)
+    (hv : star v ⬝ᵥ v = 1) (hQv : star (Q.val *ᵥ v) ⬝ᵥ (Q.val *ᵥ v) = 1) (z : Circle) :
+    rankOneTwist (Q.val *ᵥ v) hQv z = Q * rankOneTwist v hv z * Q⁻¹ := by
+  have hP : lineProjection (Q.val *ᵥ v) = Q.val * lineProjection v * Q.valᴴ := by
+    simp only [lineProjection, Matrix.mul_vecMulVec, Matrix.vecMulVec_mul, Matrix.star_mulVec]
+  apply Subtype.ext
+  change 1 + ((z : ℂ) - 1) • lineProjection (Q.val *ᵥ v) =
+    Q.val * (1 + ((z : ℂ) - 1) • lineProjection v) * Q.valᴴ
+  have hQ : Q.val * Q.valᴴ = 1 := Q.property.2
+  rw [hP, mul_add, mul_one, mul_smul_comm, add_mul, smul_mul_assoc, hQ]
+
+theorem continuous_rankOneTwist {X : Type*} [TopologicalSpace X] {N : ℕ}
+    (v : X → Fin N → ℂ) (hv : ∀ x, star (v x) ⬝ᵥ v x = 1) (hc : Continuous v) (z : Circle) :
+    Continuous (fun x => rankOneTwist (v x) (hv x) z) := by
+  have hp : Continuous (fun x => lineProjection (v x)) := by
+    apply continuous_matrix
+    intro i j
+    exact ((continuous_apply i).comp hc).mul (((continuous_apply j).comp hc).star)
+  have hc' : Continuous (fun _ : X => (z : ℂ) - 1) := continuous_const
+  exact (continuous_const.add (hc'.smul hp)).subtype_mk _
 
 /-- The kernel ratio is the exponential gain evaluated at the real part of
 the rank-one expectation for the unmodified face. -/

@@ -18,6 +18,7 @@ public import GaplessYangMills.FiniteFilling
 public import GaplessYangMills.FiniteGibbs
 public import GaplessYangMills.FiniteWilson
 public import GaplessYangMills.Flux
+public import GaplessYangMills.GaugeAveraging
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes
 public import GaplessYangMills.GramTwist
@@ -26,11 +27,14 @@ public import GaplessYangMills.KernelQuadrature
 public import GaplessYangMills.Lattice
 public import GaplessYangMills.Marginal
 public import GaplessYangMills.MarkedEdges
+public import GaplessYangMills.PeriodicKernelCycle
+public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.ShiftMeans
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral
 public import GaplessYangMills.SphericalCap
+public import GaplessYangMills.TorusSlices
 public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.TracePowerOrder
 public import GaplessYangMills.TransferForm

@@ -181,6 +181,14 @@ theorem finiteKernel_twist_bounds {X ι : Type*} (K : X → X → ℝ)
 noncomputable def fundamentalKernel {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) : ℝ :=
   Real.exp ((N : ℝ) * β * (A.val * B.valᴴ).trace.re)
 
+theorem fundamentalKernel_pos {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) :
+    0 < fundamentalKernel β A B := Real.exp_pos _
+
+theorem fundamentalKernel_rightInvariant {N : ℕ} (β : ℝ) (Z A B : UnitaryMatrix N) :
+    fundamentalKernel β (A * Z) (B * Z) = fundamentalKernel β A B := by
+  have h : (A * Z) * (B * Z)⁻¹ = A * B⁻¹ := by simp [mul_assoc]
+  exact congrArg (fun U : UnitaryMatrix N => Real.exp ((N : ℝ) * β * U.val.trace.re)) h
+
 theorem fundamentalKernel_symm {N : ℕ} (β : ℝ) (A B : UnitaryMatrix N) :
     fundamentalKernel β A B = fundamentalKernel β B A := by
   have h := Matrix.trace_conjTranspose (A.val * B.valᴴ)

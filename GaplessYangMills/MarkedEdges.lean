@@ -74,7 +74,7 @@ private theorem faceCubes_card_le (p : Plaquette) : (faceCubes p).card ≤ 4 := 
   obtain ⟨I, x⟩ := p
   exact (List.toFinset_card_le _).trans (by cases I <;> simp [faceCubeList])
 
-@[expose] def allBad {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset Plaquette) : Set Ω :=
+@[expose] def allBad {P Ω : Type*} (bad : P → Set Ω) (S : Finset P) : Set Ω :=
   {ω | ∀ p ∈ S, ω ∈ bad p}
 
 def allMarked {Ω : Type*} (bad : Plaquette → Set Ω) (S : Finset DualEdge) : Set Ω :=

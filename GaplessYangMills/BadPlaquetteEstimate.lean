@@ -18,7 +18,7 @@ namespace GaplessYangMills
 open MeasureTheory
 open scoped ENNReal
 
-theorem largest_orientation (S : Finset Plaquette) :
+theorem largest_orientation {X : Type*} (S : Finset (Face × X)) :
     ∃ I : Face, S.card ≤ 6 * (S.filter fun p => p.1 = I).card := by
   classical
   have hcard : Fintype.card Face = 6 := by decide
@@ -34,8 +34,8 @@ theorem largest_orientation (S : Finset Plaquette) :
   rw [← Finset.mul_sum, ← hcount] at hlt
   simp [hcard] at hlt
 
-theorem measurable_allBad {Ω : Type*} [MeasurableSpace Ω] (bad : Plaquette → Set Ω)
-    (hbad : ∀ p, MeasurableSet (bad p)) (S : Finset Plaquette) :
+theorem measurable_allBad {P Ω : Type*} [MeasurableSpace Ω] (bad : P → Set Ω)
+    (hbad : ∀ p, MeasurableSet (bad p)) (S : Finset P) :
     MeasurableSet (allBad bad S) := by
   have h : allBad bad S = ⋂ p ∈ S, bad p := by
     ext ω
@@ -43,11 +43,11 @@ theorem measurable_allBad {Ω : Type*} [MeasurableSpace Ω] (bad : Plaquette →
   rw [h]
   exact MeasurableSet.biInter S.finite_toSet.countable fun p _ => hbad p
 
-theorem badEvent_le_of_productExpectation {Ω : Type*} [MeasurableSpace Ω]
-    (μ : Measure Ω) (bad : Plaquette → Set Ω) (hbad : ∀ p, MeasurableSet (bad p))
-    (M : Plaquette → Ω → ℝ≥0∞) (a : ℝ)
+theorem badEvent_le_of_productExpectation {P Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (bad : P → Set Ω) (hbad : ∀ p, MeasurableSet (bad p))
+    (M : P → Ω → ℝ≥0∞) (a : ℝ)
     (hM : ∀ p ω, ω ∈ bad p → ENNReal.ofReal (Real.exp a) ≤ M p ω)
-    (S : Finset Plaquette)
+    (S : Finset P)
     (hExpectation : (∫⁻ ω, (∏ p ∈ S, M p ω) ∂μ) ≤ 1) :
     μ (allBad bad S) ≤ ENNReal.ofReal (Real.exp (-a * S.card)) := by
   let threshold := ENNReal.ofReal (Real.exp (a * S.card))
@@ -72,12 +72,12 @@ theorem badEvent_le_of_productExpectation {Ω : Type*} [MeasurableSpace Ω]
 
 /-- The full joint estimate follows from one-orientation expectations and
 the pointwise lower bound of the modified weight on bad faces. -/
-theorem badEvent_le_of_orientationExpectations {Ω : Type*} [MeasurableSpace Ω]
-    (μ : Measure Ω) (bad : Plaquette → Set Ω) (hbad : ∀ p, MeasurableSet (bad p))
-    (M : Plaquette → Ω → ℝ≥0∞) (a : ℝ) (ha : 0 ≤ a)
+theorem badEvent_le_of_orientationExpectations {X Ω : Type*} [MeasurableSpace Ω]
+    (μ : Measure Ω) (bad : Face × X → Set Ω) (hbad : ∀ p, MeasurableSet (bad p))
+    (M : Face × X → Ω → ℝ≥0∞) (a : ℝ) (ha : 0 ≤ a)
     (hM : ∀ p ω, ω ∈ bad p → ENNReal.ofReal (Real.exp a) ≤ M p ω)
-    (hExpectation : ∀ (I : Face) (S : Finset Plaquette), (∀ p ∈ S, p.1 = I) →
-      (∫⁻ ω, (∏ p ∈ S, M p ω) ∂μ) ≤ 1) (S : Finset Plaquette) :
+    (hExpectation : ∀ (I : Face) (S : Finset (Face × X)), (∀ p ∈ S, p.1 = I) →
+      (∫⁻ ω, (∏ p ∈ S, M p ω) ∂μ) ≤ 1) (S : Finset (Face × X)) :
     μ (allBad bad S) ≤ ENNReal.ofReal (Real.exp (-(a / 6) * S.card)) := by
   classical
   obtain ⟨I, hI⟩ := largest_orientation S
