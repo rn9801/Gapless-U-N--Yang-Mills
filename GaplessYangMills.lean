@@ -11,9 +11,11 @@ public import GaplessYangMills.Components
 public import GaplessYangMills.ConnectedSetCounting
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
+public import GaplessYangMills.CutAverages
 public import GaplessYangMills.CutFluxApproximation
 public import GaplessYangMills.CutFluxBounds
 public import GaplessYangMills.CutFluxMeasurability
+public import GaplessYangMills.CutLaw
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
 public import GaplessYangMills.DirectionalMean
@@ -24,6 +26,7 @@ public import GaplessYangMills.FiniteFilling
 public import GaplessYangMills.FiniteGibbs
 public import GaplessYangMills.FiniteWilson
 public import GaplessYangMills.Flux
+public import GaplessYangMills.FluxSymmetries
 public import GaplessYangMills.GaugeAveraging
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes

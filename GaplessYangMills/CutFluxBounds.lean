@@ -377,6 +377,14 @@ private theorem natAbs_dualCurrent_le (q : ThreeForm ℤ) (B : ℕ)
   · simpa [dualCurrent] using h' .xyw (-y)
   · simpa [dualCurrent] using h' .xyz (-y)
 
+theorem natAbs_cutDefect_le {N : ℕ} (U : OneForm (UnitaryMatrix N)) (η : TwoForm ℝ)
+    (hη : ∀ J y, |η J y| ≤ Real.pi / 16) (e : OrientedEdge) :
+    (dualCurrent (defect (liftFlux η (plaquetteEigenangles U))) e).natAbs ≤ 4 * N := by
+  apply natAbs_dualCurrent_le
+  intro c y
+  push_cast
+  exact abs_unitaryDefect_le U η _ (prod_exp_plaquetteEigenangles U) hη c y
+
 theorem measurableSet_markedDualLink {N : ℕ} (hN : 0 < N) (e : OrientedEdge) :
     MeasurableSet (markedDualLink (badPlaquette (N := N)) e) := by
   rw [show markedDualLink (badPlaquette (N := N)) e = ⋃ p ∈ cubeFaces (edgeCubeEquiv e),
@@ -423,16 +431,11 @@ theorem abs_repairedCutFlux_sub_approx_le_periodicLimit_ae {N : ℕ} (hN : 0 < N
   let a := liftFlux η (plaquetteEigenangles V)
   let q := defect a
   have hq := plaquetteDefect_closed V η
-  have hmass : ∀ e, (dualCurrent q e).natAbs ≤ 4 * N := by
-    apply natAbs_dualCurrent_le
-    intro c y
-    push_cast
-    exact abs_unitaryDefect_le V η _ (prod_exp_plaquetteEigenangles V) hη c y
   have hsum := summable_componentCoverTail_of_eventually_zero
     (markedDualLink badPlaquette) (4 * N) (-x) (R + 1) U
     ((hU (-x)).mono (fun n hn => componentCoverBlock_eq_zero_of_notMem _ _ _ _ _ hn))
   have htail := abs_fillDefectApprox_sub_le_tail (markedDualLink badPlaquette) (4 * N)
-    U q hq hmass (fun e he => cutDefect_supported_in_marks U η hη he) I x
+    U q hq (natAbs_cutDefect_le V η hη) (fun e he => cutDefect_supported_in_marks U η hη he) I x
     (le_max_right K R) hsum
   rw [← hK (max K R) (le_max_left K R) η hη]
   change |(a I x - 2 * Real.pi * (fillDefectApprox q (max K R) I x : ℝ)) -

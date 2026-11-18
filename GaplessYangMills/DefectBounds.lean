@@ -49,20 +49,23 @@ theorem abs_liftAngle_le {η θ : ℝ} (hη : |η| ≤ Real.pi / 16) :
   obtain ⟨h₁, h₂⟩ := abs_le.mp hη
   exact abs_le.mpr ⟨by linarith, by linarith⟩
 
+theorem abs_liftFlux_le {N : ℕ} (η : TwoForm ℝ) (θ : Angles N)
+    (I : Face) (x : Site) (hη : |η I x| ≤ Real.pi / 16) :
+    |liftFlux η θ I x| ≤ N * (17 * Real.pi / 16) := by
+  unfold liftFlux
+  refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
+  calc
+    _ ≤ ∑ _j : Fin N, 17 * Real.pi / 16 :=
+      Finset.sum_le_sum fun _ _ => abs_liftAngle_le hη
+    _ = _ := by simp [nsmul_eq_mul]
+
 theorem abs_unitaryDefect_le {N : ℕ} (U : OneForm (UnitaryMatrix N))
     (η : TwoForm ℝ) (θ : Angles N)
     (hθ : ∀ I x, (∏ j, Circle.exp (θ I x j)) = unitaryDet N (plaquetteHolonomy U I x))
     (hη : ∀ I x, |η I x| ≤ Real.pi / 16) (c : Cube) (x : Site) :
     |(defect (liftFlux η θ) c x : ℝ)| ≤ 4 * N := by
-  have hflux (I : Face) (y : Site) : |liftFlux η θ I y| ≤ N * (17 * Real.pi / 16) := by
-    unfold liftFlux
-    refine (Finset.abs_sum_le_sum_abs _ _).trans ?_
-    calc
-      _ ≤ ∑ _j : Fin N, 17 * Real.pi / 16 :=
-        Finset.sum_le_sum fun _ _ => abs_liftAngle_le (hη I y)
-      _ = _ := by simp [nsmul_eq_mul]
   refine (abs_defect_le_of_abs_flux_le _ (unitary_liftFlux_exp_closed U η θ hθ)
-    _ hflux c x).trans ?_
+    _ (fun I y => abs_liftFlux_le η θ I y (hη I y)) c x).trans ?_
   apply (div_le_iff₀ Real.two_pi_pos).mpr
   nlinarith [mul_nonneg (Nat.cast_nonneg (α := ℝ) N) Real.pi_pos.le]
 

@@ -266,18 +266,22 @@ private theorem measurable_finsum_int {Ω ι : Type*} [MeasurableSpace Ω] [Coun
   rw [he]
   exact hU.union hE
 
+theorem measurable_dualCurrent_coordinate {Ω : Type*} [MeasurableSpace Ω]
+    (q : Ω → ThreeForm ℤ) (hq : ∀ c x, Measurable (fun ω => q ω c x)) (e : OrientedEdge) :
+    Measurable (fun ω => dualCurrent (q ω) e) := by
+  obtain ⟨y, i⟩ := e
+  fin_cases i
+  · simpa [dualCurrent] using hq .yzw (-y)
+  · simpa [dualCurrent] using hq .xzw (-y)
+  · simpa [dualCurrent] using hq .xyw (-y)
+  · simpa [dualCurrent] using hq .xyz (-y)
+
 theorem measurable_fillDefect_coordinate {Ω : Type*} [MeasurableSpace Ω]
     (q : Ω → ThreeForm ℤ) (hq : ∀ c x, Measurable (fun ω => q ω c x)) (I : Face) (x : Site) :
     Measurable (fun ω => fillDefect (q ω) I x) := by
-  have hr (e : OrientedEdge) : Measurable (fun ω => dualCurrent (q ω) e) := by
-    obtain ⟨y, i⟩ := e
-    fin_cases i
-    · simpa [dualCurrent] using hq .yzw (-y)
-    · simpa [dualCurrent] using hq .xzw (-y)
-    · simpa [dualCurrent] using hq .xyw (-y)
-    · simpa [dualCurrent] using hq .xyz (-y)
   simp_rw [fillDefect_eq_finsum_certified]
-  exact measurable_finsum_int _ (fun S => measurable_certifiedFillValue _ hr S I x)
+  exact measurable_finsum_int _ (fun S =>
+    measurable_certifiedFillValue _ (measurable_dualCurrent_coordinate q hq) S I x)
 
 theorem measurable_repairedCutFlux_coordinate {N : ℕ} (I : Face) (x : Site) :
     Measurable (fun p : InfiniteConfig N × TwoForm ℝ =>
