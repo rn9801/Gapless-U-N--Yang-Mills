@@ -39,7 +39,7 @@ def wilsonReflectL2 {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
     (τ : Axis) (c : ℤ) : WilsonL2 μ →L[ℝ] WilsonL2 μ :=
   (wilsonReflectL2Isometry μ hμ τ c).toContinuousLinearMap
 
-private theorem lpComposition_congr {Ω : Type*} [MeasurableSpace Ω] {m : Measure Ω}
+theorem lpComposition_congr {Ω : Type*} [MeasurableSpace Ω] {m : Measure Ω}
     {f g : Ω → Ω} (h : f = g) (hf : MeasurePreserving f m m) (hg : MeasurePreserving g m m)
     (u : Lp ℝ 2 m) : Lp.compMeasurePreserving f hf u = Lp.compMeasurePreserving g hg u := by
   subst g

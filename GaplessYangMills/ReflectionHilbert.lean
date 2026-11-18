@@ -158,6 +158,70 @@ theorem inner_transfer_pow (S : B.Shift) (n : ℕ) (u v : E) :
 
 end Shift
 
+section Congruence
+
+def completeLinearIsometry {M H : Type*} [SeminormedAddCommGroup M] [NormedSpace ℝ M]
+    [SeminormedAddCommGroup H] [NormedSpace ℝ H] (f : M →ₗᵢ[ℝ] H) :
+    Completion M →ₗᵢ[ℝ] Completion H where
+  toLinearMap := f.toContinuousLinearMap.completion.toLinearMap
+  norm_map' u := by
+    change ‖f.toContinuousLinearMap.completion u‖ = ‖u‖
+    refine Completion.induction_on u
+      (isClosed_eq f.toContinuousLinearMap.completion.continuous.norm continuous_norm) ?_
+    intro v
+    rw [f.toContinuousLinearMap.completion_apply_coe, Completion.norm_coe, Completion.norm_coe]
+    exact f.norm_map v
+
+theorem completeLinearIsometry_coe {M H : Type*} [SeminormedAddCommGroup M] [NormedSpace ℝ M]
+    [SeminormedAddCommGroup H] [NormedSpace ℝ H] (f : M →ₗᵢ[ℝ] H) (u : M) :
+    completeLinearIsometry f (u : Completion M) = (f u : Completion H) :=
+  f.toContinuousLinearMap.completion_apply_coe u
+
+variable {F : Type*} [AddCommGroup F] [Module ℝ F]
+variable (B : PositiveReflectionForm E) (C : PositiveReflectionForm F)
+
+def formSpaceIsometry (e : E ≃ₗ[ℝ] F) (he : ∀ u v, B.form u v = C.form (e u) (e v)) :
+    B.FormSpace ≃ₗᵢ[ℝ] C.FormSpace where
+  toLinearEquiv := e
+  norm_map' u := by
+    let v : E := u
+    change Real.sqrt (C.form (e v) (e v)) = Real.sqrt (B.form v v)
+    rw [he v v]
+
+def hilbertIsometry (e : E ≃ₗ[ℝ] F) (he : ∀ u v, B.form u v = C.form (e u) (e v)) :
+    B.Hilbert ≃ₗᵢ[ℝ] C.Hilbert := by
+  let f := B.formSpaceIsometry C e he
+  let f₁ : B.Hilbert →ₗᵢ[ℝ] C.Hilbert :=
+    completeLinearIsometry f.toLinearIsometry
+  let g : C.Hilbert →ₗᵢ[ℝ] B.Hilbert :=
+    completeLinearIsometry f.symm.toLinearIsometry
+  refine LinearIsometryEquiv.ofSurjective f₁ fun y => ?_
+  refine ⟨g y, Completion.induction_on y (isClosed_eq (by fun_prop) continuous_id) ?_⟩
+  intro z
+  change completeLinearIsometry f.toLinearIsometry (completeLinearIsometry f.symm.toLinearIsometry z) = _
+  rw [completeLinearIsometry_coe, completeLinearIsometry_coe]
+  exact congrArg (fun v : C.FormSpace => (v : C.Hilbert)) (f.apply_symm_apply z)
+
+theorem hilbertIsometry_ofVector (e : E ≃ₗ[ℝ] F) (he : ∀ u v, B.form u v = C.form (e u) (e v))
+    (u : E) : B.hilbertIsometry C e he (B.ofVector u) = C.ofVector (e u) :=
+  completeLinearIsometry_coe (M := B.FormSpace) (H := C.FormSpace)
+    (B.formSpaceIsometry C e he).toLinearIsometry u
+
+theorem hilbertIsometry_transfer (e : E ≃ₗ[ℝ] F) (he : ∀ u v, B.form u v = C.form (e u) (e v))
+    (S : B.Shift) (T : C.Shift) (h : ∀ u, e (S.operator u) = T.operator (e u))
+    (v : B.Hilbert) :
+    B.hilbertIsometry C e he (S.transfer v) = T.transfer (B.hilbertIsometry C e he v) := by
+  let I := B.hilbertIsometry C e he
+  change I (S.transfer v) = T.transfer (I v)
+  refine Completion.induction_on v (isClosed_eq (by fun_prop) (by fun_prop)) ?_
+  intro u
+  let u₀ : E := u
+  change B.hilbertIsometry C e he (S.transfer (B.ofVector u₀)) =
+    T.transfer (B.hilbertIsometry C e he (B.ofVector u₀))
+  rw [Shift.transfer_ofVector, hilbertIsometry_ofVector, hilbertIsometry_ofVector, Shift.transfer_ofVector, h]
+
+end Congruence
+
 end PositiveReflectionForm
 
 end

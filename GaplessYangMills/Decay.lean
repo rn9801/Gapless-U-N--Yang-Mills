@@ -66,14 +66,14 @@ theorem summable_of_exp_bound (f : Site → ℝ) {C m : ℝ} (hm : 0 < m)
   exact ((summable_exp_radius m hm).mul_left C).of_nonneg_of_le (fun _ => norm_nonneg _)
     (fun x => by simpa only [Real.norm_eq_abs] using hbound x)
 
-/-- The local approximation estimate and the transfer estimate from Section 5
-give one global exponential bound. The constant `width` is the fixed part of
-the support offset, after the variable part has been bounded by `3 * R`. -/
-theorem exp_bound_of_local_approximants (f : Site → ℝ) (localApprox : ℕ → Site → ℝ)
-    {A B c m width : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) (hc : 0 < c) (hm : 0 < m)
+/-- The local approximation estimate and a transfer bound with a linear
+support offset imply a global exponential bound. -/
+theorem exp_bound_of_local_approximants_linear (f : Site → ℝ) (localApprox : ℕ → Site → ℝ)
+    {A B c m width slope : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) (hc : 0 < c) (hm : 0 < m)
+    (hslope : slope ≤ 4)
     (herror : ∀ R x, |f x - localApprox R x| ≤ B * Real.exp (-c * R))
     (hlocal : ∀ R x,
-      |localApprox R x| ≤ A * Real.exp (-m * ((radius x : ℝ) - (3 * R + width)))) :
+      |localApprox R x| ≤ A * Real.exp (-m * ((radius x : ℝ) - (slope * R + width)))) :
     ∃ C r : ℝ, 0 < r ∧ ∀ x, |f x| ≤ C * Real.exp (-r * (radius x : ℝ)) := by
   let r : ℝ := min (m / 2) (c / 8)
   refine ⟨A * Real.exp (m * width) + B * Real.exp c, r, lt_min (by positivity) (by positivity), ?_⟩
@@ -84,13 +84,14 @@ theorem exp_bound_of_local_approximants (f : Site → ℝ) (localApprox : ℕ �
   have hhi : 8 * (R : ℝ) ≤ (radius x : ℝ) := by
     exact_mod_cast (show 8 * R ≤ radius x by dsimp [R]; omega)
   have hlocal_exp :
-      Real.exp (-m * ((radius x : ℝ) - (3 * R + width))) ≤
+      Real.exp (-m * ((radius x : ℝ) - (slope * R + width))) ≤
         Real.exp (m * width) * Real.exp (-r * (radius x : ℝ)) := by
     rw [← Real.exp_add, Real.exp_le_exp]
     have h₁ := mul_le_mul_of_nonneg_left hhi hm.le
     have h₂ := mul_le_mul_of_nonneg_right (min_le_left (m / 2) (c / 8))
       (Nat.cast_nonneg (radius x) : 0 ≤ (radius x : ℝ))
-    nlinarith [mul_nonneg hm.le (Nat.cast_nonneg R : 0 ≤ (R : ℝ))]
+    have h₃ := mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right hslope (Nat.cast_nonneg R)) hm.le
+    nlinarith
   have herror_exp :
       Real.exp (-c * R) ≤ Real.exp c * Real.exp (-r * (radius x : ℝ)) := by
     rw [← Real.exp_add, Real.exp_le_exp]
@@ -104,12 +105,20 @@ theorem exp_bound_of_local_approximants (f : Site → ℝ) (localApprox : ℕ �
       rw [add_comm]
       simpa only [sub_add_cancel] using
         (abs_add_le (f x - localApprox R x) (localApprox R x))
-    _ ≤ A * Real.exp (-m * ((radius x : ℝ) - (3 * R + width))) + B * Real.exp (-c * R) :=
+    _ ≤ A * Real.exp (-m * ((radius x : ℝ) - (slope * R + width))) + B * Real.exp (-c * R) :=
       add_le_add (hlocal R x) (herror R x)
     _ ≤ A * (Real.exp (m * width) * Real.exp (-r * (radius x : ℝ))) +
         B * (Real.exp c * Real.exp (-r * (radius x : ℝ))) :=
       add_le_add (mul_le_mul_of_nonneg_left hlocal_exp hA) (mul_le_mul_of_nonneg_left herror_exp hB)
     _ = _ := by ring
+
+theorem exp_bound_of_local_approximants (f : Site → ℝ) (localApprox : ℕ → Site → ℝ)
+    {A B c m width : ℝ} (hA : 0 ≤ A) (hB : 0 ≤ B) (hc : 0 < c) (hm : 0 < m)
+    (herror : ∀ R x, |f x - localApprox R x| ≤ B * Real.exp (-c * R))
+    (hlocal : ∀ R x,
+      |localApprox R x| ≤ A * Real.exp (-m * ((radius x : ℝ) - (3 * R + width)))) :
+    ∃ C r : ℝ, 0 < r ∧ ∀ x, |f x| ≤ C * Real.exp (-r * (radius x : ℝ)) :=
+  exp_bound_of_local_approximants_linear f localApprox hA hB hc hm (by norm_num) herror hlocal
 
 /-- A closed kernel obeying the Ward response cannot have exponentially
 decaying entries. Rates and prefactors may depend on the pair of orientations. -/

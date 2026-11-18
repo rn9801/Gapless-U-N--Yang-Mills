@@ -36,6 +36,7 @@ import all GaplessYangMills.FiniteWilson
 import all GaplessYangMills.Flux
 import all GaplessYangMills.FluxSymmetries
 import all GaplessYangMills.GaugeAveraging
+import all GaplessYangMills.GaugeCylinderDensity
 import all GaplessYangMills.Gluing
 import all GaplessYangMills.GoodCubes
 import all GaplessYangMills.GramTwist
@@ -57,6 +58,7 @@ import all GaplessYangMills.PeriodicSiteReflection
 import all GaplessYangMills.PeriodicWilsonComparison
 import all GaplessYangMills.RankOneTwist
 import all GaplessYangMills.RankOneTwistLaw
+import all GaplessYangMills.RealTransferSpectrum
 import all GaplessYangMills.ReflectionHilbert
 import all GaplessYangMills.ReflectionProduct
 import all GaplessYangMills.ShiftMeans
@@ -74,14 +76,20 @@ import all GaplessYangMills.Ward
 import all GaplessYangMills.WardTest
 import all GaplessYangMills.WeakCoupling
 import all GaplessYangMills.Wilson
+import all GaplessYangMills.WilsonAxisPermutations
+import all GaplessYangMills.WilsonAxisTransfer
 import all GaplessYangMills.WilsonBadPlaquettes
 import all GaplessYangMills.WilsonBondLimit
 import all GaplessYangMills.WilsonCovariance
+import all GaplessYangMills.WilsonGapless
 import all GaplessYangMills.WilsonHalfSpace
 import all GaplessYangMills.WilsonKernel
 import all GaplessYangMills.WilsonLimits
+import all GaplessYangMills.WilsonLocalDecay
+import all GaplessYangMills.WilsonLocalObservables
 import all GaplessYangMills.WilsonOS
 import all GaplessYangMills.WilsonProjection
+import all GaplessYangMills.WilsonProjectedDecay
 import all GaplessYangMills.WilsonReflections
 import all GaplessYangMills.WilsonSliceKernel
 import all GaplessYangMills.WilsonTransferCorrelations

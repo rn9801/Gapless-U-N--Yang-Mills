@@ -35,6 +35,7 @@ public import GaplessYangMills.FiniteWilson
 public import GaplessYangMills.Flux
 public import GaplessYangMills.FluxSymmetries
 public import GaplessYangMills.GaugeAveraging
+public import GaplessYangMills.GaugeCylinderDensity
 public import GaplessYangMills.Gluing
 public import GaplessYangMills.GoodCubes
 public import GaplessYangMills.GramTwist
@@ -56,6 +57,7 @@ public import GaplessYangMills.PeriodicSiteReflection
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.RankOneTwistLaw
+public import GaplessYangMills.RealTransferSpectrum
 public import GaplessYangMills.ReflectionHilbert
 public import GaplessYangMills.ReflectionProduct
 public import GaplessYangMills.ShiftMeans
@@ -73,14 +75,20 @@ public import GaplessYangMills.Ward
 public import GaplessYangMills.WardTest
 public import GaplessYangMills.WeakCoupling
 public import GaplessYangMills.Wilson
+public import GaplessYangMills.WilsonAxisPermutations
+public import GaplessYangMills.WilsonAxisTransfer
 public import GaplessYangMills.WilsonBadPlaquettes
 public import GaplessYangMills.WilsonBondLimit
 public import GaplessYangMills.WilsonCovariance
+public import GaplessYangMills.WilsonGapless
 public import GaplessYangMills.WilsonHalfSpace
 public import GaplessYangMills.WilsonKernel
 public import GaplessYangMills.WilsonLimits
+public import GaplessYangMills.WilsonLocalDecay
+public import GaplessYangMills.WilsonLocalObservables
 public import GaplessYangMills.WilsonOS
 public import GaplessYangMills.WilsonProjection
+public import GaplessYangMills.WilsonProjectedDecay
 public import GaplessYangMills.WilsonReflections
 public import GaplessYangMills.WilsonSliceKernel
 public import GaplessYangMills.WilsonTransferCorrelations

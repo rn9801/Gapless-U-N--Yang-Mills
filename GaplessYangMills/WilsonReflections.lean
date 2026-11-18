@@ -97,6 +97,18 @@ theorem reflectSiteOn_lower_add_torusStep {L : ℕ} (τ : Axis) (c : ZMod L) (x 
     reflectSiteOn τ (c - 1) x + torusStep L τ = reflectSiteOn τ c x :=
   reflectSiteOn_lower_add_parallel τ c x
 
+theorem reflectSiteOn_add_step_normal (τ : Axis) (c : ℤ) (x : Site) :
+    reflectSiteOn τ c (x + step τ) = reflectSiteOn τ (c - 1) x :=
+  reflectSiteOn_add_parallel τ c x
+
+theorem reflectSiteOn_add_step_tangent {τ i : Axis} (hi : i ≠ τ) (c : ℤ) (x : Site) :
+    reflectSiteOn τ c (x + step i) = reflectSiteOn τ c x + step i :=
+  reflectSiteOn_add_transverse hi c x
+
+theorem reflectSiteOn_lower_add_step (τ : Axis) (c : ℤ) (x : Site) :
+    reflectSiteOn τ (c - 1) x + step τ = reflectSiteOn τ c x :=
+  reflectSiteOn_lower_add_parallel τ c x
+
 def reflectLinkIndex {A : Type*} [AddCommGroup A] [One A] (τ : Axis) (c : A) :
     (Axis × (Axis → A)) ≃ (Axis × (Axis → A)) where
   toFun e := (e.1, reflectSiteOn τ (if e.1 = τ then c - 1 else c) e.2)
@@ -180,7 +192,7 @@ theorem reflectConfig_translate_step {N : ℕ} (τ : Axis) (c : ℤ) (U : Infini
     simp only [reflectConfig, reflectLinksOn_normal, translateConfig, h, sub_add_cancel, add_sub_cancel_right]
   · simp only [reflectConfig, reflectLinksOn_tangent hi, translateConfig, h]
 
-private theorem unitaryTrace_re_inv {N : ℕ} (P : UnitaryMatrix N) :
+theorem unitaryTrace_re_inv {N : ℕ} (P : UnitaryMatrix N) :
     (P⁻¹).val.trace.re = P.val.trace.re := by
   change (P.valᴴ).trace.re = _
   rw [Matrix.trace_conjTranspose]
