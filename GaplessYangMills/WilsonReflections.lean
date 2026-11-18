@@ -84,6 +84,19 @@ private theorem reflectSiteOn_lower_add_parallel {A : Type*} [AddCommGroup A] [O
     abel
   · simp [reflectSiteOn, axisUnit, hj, Ne.symm hj]
 
+theorem reflectSiteOn_add_torusStep_normal {L : ℕ} (τ : Axis) (c : ZMod L) (x : TorusSite L) :
+    reflectSiteOn τ c (x + torusStep L τ) = reflectSiteOn τ (c - 1) x :=
+  reflectSiteOn_add_parallel τ c x
+
+theorem reflectSiteOn_add_torusStep_tangent {L : ℕ} {τ i : Axis} (hi : i ≠ τ) (c : ZMod L)
+    (x : TorusSite L) :
+    reflectSiteOn τ c (x + torusStep L i) = reflectSiteOn τ c x + torusStep L i :=
+  reflectSiteOn_add_transverse hi c x
+
+theorem reflectSiteOn_lower_add_torusStep {L : ℕ} (τ : Axis) (c : ZMod L) (x : TorusSite L) :
+    reflectSiteOn τ (c - 1) x + torusStep L τ = reflectSiteOn τ c x :=
+  reflectSiteOn_lower_add_parallel τ c x
+
 def reflectLinkIndex {A : Type*} [AddCommGroup A] [One A] (τ : Axis) (c : A) :
     (Axis × (Axis → A)) ≃ (Axis × (Axis → A)) where
   toFun e := (e.1, reflectSiteOn τ (if e.1 = τ then c - 1 else c) e.2)
@@ -131,6 +144,41 @@ theorem continuous_reflectConfig {N : ℕ} (τ : Axis) (c : ℤ) :
 theorem continuous_reflectPeriodic {L N : ℕ} (τ : Axis) (c : ZMod L) :
     Continuous (reflectPeriodic τ c : TorusConfig L N → TorusConfig L N) :=
   continuous_reflectLinksOn τ c
+
+theorem reflectConfig_involutive {N : ℕ} (τ : Axis) (c : ℤ) :
+    Function.Involutive (reflectConfig (N := N) τ c) := by
+  intro U
+  funext e
+  obtain ⟨i, x⟩ := e
+  by_cases hi : i = τ
+  · subst i
+    simp only [reflectConfig, reflectLinksOn_normal, inv_inv]
+    rw [reflectSiteOn_involutive τ (c - 1) x]
+  · simp only [reflectConfig, reflectLinksOn_tangent hi]
+    rw [reflectSiteOn_involutive τ c x]
+
+theorem translateConfig_reflect_step {N : ℕ} (τ : Axis) (c : ℤ) (U : InfiniteConfig N) :
+    translateConfig (step τ) (reflectConfig τ c U) = reflectConfig τ (c - 1) U := by
+  funext e
+  obtain ⟨i, x⟩ := e
+  have h (d : ℤ) : reflectSiteOn τ d (x + step τ) = reflectSiteOn τ (d - 1) x :=
+    reflectSiteOn_add_parallel τ d x
+  by_cases hi : i = τ
+  · subst i
+    simp only [translateConfig, reflectConfig, reflectLinksOn_normal, h]
+  · simp only [translateConfig, reflectConfig, reflectLinksOn_tangent hi, h]
+
+theorem reflectConfig_translate_step {N : ℕ} (τ : Axis) (c : ℤ) (U : InfiniteConfig N) :
+    reflectConfig τ c (translateConfig (step τ) U) = reflectConfig τ (c + 1) U := by
+  funext e
+  obtain ⟨i, x⟩ := e
+  have h (d : ℤ) : reflectSiteOn τ d x + step τ = reflectSiteOn τ (d + 1) x := by
+    change reflectSiteOn τ d x + axisUnit τ = _
+    simpa only [add_sub_cancel_right] using reflectSiteOn_lower_add_parallel τ (d + 1) x
+  by_cases hi : i = τ
+  · subst i
+    simp only [reflectConfig, reflectLinksOn_normal, translateConfig, h, sub_add_cancel, add_sub_cancel_right]
+  · simp only [reflectConfig, reflectLinksOn_tangent hi, translateConfig, h]
 
 private theorem unitaryTrace_re_inv {N : ℕ} (P : UnitaryMatrix N) :
     (P⁻¹).val.trace.re = P.val.trace.re := by

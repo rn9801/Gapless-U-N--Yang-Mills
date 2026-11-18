@@ -204,6 +204,17 @@ theorem continuous_gaugeAverage {G X : Type*} [PseudoMetricSpace G] [CompactSpac
     hc.comp (continuous_fst.fst.prodMk (continuous_snd.smul continuous_fst.snd))
   exact continuous_integral_parameter ν hF
 
+theorem PositiveKernel.integral_nonneg {X : Type*} [PseudoMetricSpace X] [CompactSpace X]
+    [SecondCountableTopology X] [MeasurableSpace X] [BorelSpace X] [Nonempty X]
+    {K : X → X → ℝ} (hK : PositiveKernel K) (hc : Continuous (fun p : X × X => K p.1 p.2))
+    (ν : Measure X) [IsProbabilityMeasure ν] :
+    0 ≤ ∫ p : X × X, K p.1 p.2 ∂ν.prod ν := by
+  classical
+  let x : X := Classical.choice inferInstance
+  have h := positiveKernel_doubleAverage ν (fun v (_ : X) => v) (fun _ => continuous_id) hc hK 1
+    (fun _ => x)
+  exact h.diag_nonneg (i := 0)
+
 section Action
 
 variable {G X : Type*} [Group G] [PseudoMetricSpace G] [IsTopologicalGroup G]

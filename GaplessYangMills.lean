@@ -3,6 +3,8 @@ module
 public import GaplessYangMills.Action
 public import GaplessYangMills.BadEvents
 public import GaplessYangMills.BadPlaquetteEstimate
+public import GaplessYangMills.BondReflectionGeometry
+public import GaplessYangMills.BondSeams
 public import GaplessYangMills.CapGain
 public import GaplessYangMills.CapVector
 public import GaplessYangMills.CapVolume
@@ -47,6 +49,8 @@ public import GaplessYangMills.MarkedBoxes
 public import GaplessYangMills.MarkedComponents
 public import GaplessYangMills.MarkedEdges
 public import GaplessYangMills.MeasurableRepair
+public import GaplessYangMills.PeriodicBondReflection
+public import GaplessYangMills.PeriodicGauge
 public import GaplessYangMills.PeriodicKernelCycle
 public import GaplessYangMills.PeriodicSiteReflection
 public import GaplessYangMills.PeriodicWilsonComparison
@@ -70,6 +74,7 @@ public import GaplessYangMills.WardTest
 public import GaplessYangMills.WeakCoupling
 public import GaplessYangMills.Wilson
 public import GaplessYangMills.WilsonBadPlaquettes
+public import GaplessYangMills.WilsonBondLimit
 public import GaplessYangMills.WilsonCovariance
 public import GaplessYangMills.WilsonKernel
 public import GaplessYangMills.WilsonLimits

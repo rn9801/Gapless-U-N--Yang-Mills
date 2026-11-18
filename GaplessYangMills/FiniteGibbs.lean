@@ -184,7 +184,13 @@ def periodicAffectedPlaquettes {L : ℕ} [NeZero L] (Λ : Finset (TorusLink L)) 
     Finset (Face × TorusSite L) :=
   Finset.univ.filter fun p => ¬ Disjoint (periodicBoundaryLinks p) Λ
 
-private theorem joinPeriodic_eq_exterior {L N : ℕ} {Λ : Finset (TorusLink L)}
+theorem joinPeriodic_eq_block {L N : ℕ} {Λ : Finset (TorusLink L)}
+    (y : PeriodicBlock N Λ) (x : PeriodicExterior N Λ) {e : TorusLink L} (he : e ∈ Λ) :
+    (splitPeriodicLinks Λ).symm (y, x) e = y ⟨e, he⟩ := by
+  have h := (splitPeriodicLinks (N := N) Λ).apply_symm_apply (y, x)
+  exact congrArg (fun z : PeriodicBlock N Λ × PeriodicExterior N Λ => z.1 ⟨e, he⟩) h
+
+theorem joinPeriodic_eq_exterior {L N : ℕ} {Λ : Finset (TorusLink L)}
     (y : PeriodicBlock N Λ) (x : PeriodicExterior N Λ) {e : TorusLink L} (he : e ∉ Λ) :
     (splitPeriodicLinks Λ).symm (y, x) e = x ⟨e, he⟩ := by
   have h := (splitPeriodicLinks (N := N) Λ).apply_symm_apply (y, x)

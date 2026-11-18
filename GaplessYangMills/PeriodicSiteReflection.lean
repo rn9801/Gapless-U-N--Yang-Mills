@@ -35,10 +35,6 @@ private theorem normalFace_false {τ : Axis} {I : Face} (h : normalFace τ I = f
     I.axes.1 ≠ τ ∧ I.axes.2 ≠ τ := by
   simpa only [normalFace, decide_eq_false_iff_not, not_or] using h
 
-private theorem torusStep_time_eq {L : ℕ} (τ i : Axis) (x : TorusSite L) :
-    (x + torusStep L i) τ = if i = τ then x τ + 1 else x τ := by
-  by_cases h : i = τ <;> simp [torusStep, h]
-
 private theorem siteBoundaryPlaquette_links {L : ℕ} [NeZero L] (τ : Axis)
     (p : Face × TorusSite L) (hp : siteCutBoundary τ (normalFace τ) p) :
     ∀ e ∈ periodicBoundaryLinks p, siteCutBoundary τ (normalLink τ) e := by

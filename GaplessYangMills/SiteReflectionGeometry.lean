@@ -14,6 +14,10 @@ one strict half and has a unique reflected partner in the other half.
 
 namespace GaplessYangMills
 
+theorem torusStep_time_eq {L : ℕ} (τ i : Axis) (x : TorusSite L) :
+    (x + torusStep L i) τ = if i = τ then x τ + 1 else x τ := by
+  by_cases h : i = τ <;> simp [torusStep, h]
+
 def siteCutBoundary {L : ℕ} {J : Type*} (τ : Axis) (normal : J → Bool) (p : J × TorusSite L) : Prop :=
   normal p.1 = false ∧ ((p.2 τ).val = 0 ∨ (p.2 τ).val = L / 2)
 
@@ -46,7 +50,7 @@ theorem siteReflectCell_involutive {L : ℕ} {J : Type*} (τ : Axis) (normal : J
     Function.Involutive (siteReflectCell (L := L) τ normal) := fun p =>
   Prod.ext (show p.1 = p.1 from rfl) (reflectSiteOn_involutive τ _ p.2)
 
-private theorem val_neg_one_zmod {L : ℕ} [NeZero L] : (-1 : ZMod L).val = L - 1 := by
+theorem val_neg_one_zmod {L : ℕ} [NeZero L] : (-1 : ZMod L).val = L - 1 := by
   cases L with
   | zero => exact False.elim (NeZero.ne 0 rfl)
   | succ L => exact ZMod.val_neg_one L
@@ -108,16 +112,12 @@ theorem siteReflectCell_interior_iff {L : ℕ} [NeZero L] (hL : 2 * (L / 2) = L)
       simpa [siteReflectCell, hn, reflectSiteOn, val_neg_one_zmod] using ZMod.val_sub ha
     omega
 
-/-- Each strict-positive cell labels its two-element reflection orbit. -/
-noncomputable def siteCutCellEquiv {L : ℕ} [NeZero L] (hL : 2 * (L / 2) = L)
-    {J : Type*} (τ : Axis) (normal : J → Bool) :
-    ({p // siteCutBoundary (L := L) τ normal p} ⊕
-      ({p // siteCutInterior (L := L) τ normal p} ⊕ {p // siteCutInterior (L := L) τ normal p})) ≃
-        J × TorusSite L := by
+/-- Each strict-positive cell labels the two cells of its reflection orbit. -/
+noncomputable def reflectionOrbitEquiv {I : Type*} (r : I → I) (hr : Function.Involutive r)
+    (B P : I → Prop) (hPB : ∀ p, P p → ¬ B p) (hrB : ∀ p, B (r p) ↔ B p)
+    (hrP : ∀ p, ¬ B p → (P (r p) ↔ ¬ P p)) :
+    ({p // B p} ⊕ ({p // P p} ⊕ {p // P p})) ≃ I := by
   classical
-  let r := siteReflectCell (L := L) τ normal
-  let B := siteCutBoundary (L := L) τ normal
-  let P := siteCutInterior (L := L) τ normal
   refine
     { toFun := fun
         | .inl p => p.val
@@ -125,28 +125,36 @@ noncomputable def siteCutCellEquiv {L : ℕ} [NeZero L] (hL : 2 * (L / 2) = L)
         | .inr (.inr p) => r p.val
       invFun := fun p => if hb : B p then .inl ⟨p, hb⟩ else
         if hp : P p then .inr (.inl ⟨p, hp⟩) else
-          .inr (.inr ⟨r p, (siteReflectCell_interior_iff hL τ normal p hb).mpr hp⟩)
+          .inr (.inr ⟨r p, (hrP p hb).mpr hp⟩)
       left_inv := ?_
       right_inv := ?_ }
   · rintro (p | p | p)
     · have hb : B p.val := p.property
       simp only [dite_eq_left hb]
-    · have hb : ¬ B p.val := p.property.2
+    · have hb : ¬ B p.val := hPB p.val p.property
       have hp : P p.val := p.property
       simp only [dite_eq_right hb, dite_eq_left hp]
     · have hb : ¬ B (r p.val) :=
-        (siteReflectCell_boundary_iff hL τ normal p.val).not.mpr p.property.2
+        (hrB p.val).not.mpr (hPB p.val p.property)
       have hp : ¬ P (r p.val) := fun h =>
-        (siteReflectCell_interior_iff hL τ normal p.val p.property.2).mp h p.property
+        (hrP p.val (hPB p.val p.property)).mp h p.property
       simp only [dite_eq_right hb, dite_eq_right hp]
-      exact congrArg (Sum.inr ∘ Sum.inr) (Subtype.ext (siteReflectCell_involutive τ normal p.val))
+      exact congrArg (Sum.inr ∘ Sum.inr) (Subtype.ext (hr p.val))
   · intro p
     by_cases hb : B p
     · simp only [dite_eq_left hb]
     · by_cases hp : P p
       · simp only [dite_eq_right hb, dite_eq_left hp]
       · simp only [dite_eq_right hb, dite_eq_right hp]
-        exact siteReflectCell_involutive τ normal p
+        exact hr p
+
+noncomputable def siteCutCellEquiv {L : ℕ} [NeZero L] (hL : 2 * (L / 2) = L)
+    {J : Type*} (τ : Axis) (normal : J → Bool) :
+    ({p // siteCutBoundary (L := L) τ normal p} ⊕
+      ({p // siteCutInterior (L := L) τ normal p} ⊕ {p // siteCutInterior (L := L) τ normal p})) ≃
+        J × TorusSite L :=
+  reflectionOrbitEquiv _ (siteReflectCell_involutive τ normal) _ _ (fun _ h => h.2)
+    (siteReflectCell_boundary_iff hL τ normal) (siteReflectCell_interior_iff hL τ normal)
 
 def normalLink (τ : Axis) (i : Axis) : Bool := decide (i = τ)
 

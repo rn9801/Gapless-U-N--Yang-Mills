@@ -4,6 +4,8 @@ import GaplessYangMills
 import all GaplessYangMills.Action
 import all GaplessYangMills.BadEvents
 import all GaplessYangMills.BadPlaquetteEstimate
+import all GaplessYangMills.BondReflectionGeometry
+import all GaplessYangMills.BondSeams
 import all GaplessYangMills.CapGain
 import all GaplessYangMills.CapVector
 import all GaplessYangMills.CapVolume
@@ -48,6 +50,8 @@ import all GaplessYangMills.MarkedBoxes
 import all GaplessYangMills.MarkedComponents
 import all GaplessYangMills.MarkedEdges
 import all GaplessYangMills.MeasurableRepair
+import all GaplessYangMills.PeriodicBondReflection
+import all GaplessYangMills.PeriodicGauge
 import all GaplessYangMills.PeriodicKernelCycle
 import all GaplessYangMills.PeriodicSiteReflection
 import all GaplessYangMills.PeriodicWilsonComparison
@@ -71,6 +75,7 @@ import all GaplessYangMills.WardTest
 import all GaplessYangMills.WeakCoupling
 import all GaplessYangMills.Wilson
 import all GaplessYangMills.WilsonBadPlaquettes
+import all GaplessYangMills.WilsonBondLimit
 import all GaplessYangMills.WilsonCovariance
 import all GaplessYangMills.WilsonKernel
 import all GaplessYangMills.WilsonLimits
