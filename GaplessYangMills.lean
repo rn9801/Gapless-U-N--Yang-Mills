@@ -18,6 +18,7 @@ public import GaplessYangMills.CutFluxBounds
 public import GaplessYangMills.CutFluxMeasurability
 public import GaplessYangMills.CutLaw
 public import GaplessYangMills.CutResponse
+public import GaplessYangMills.CutResponseKernel
 public import GaplessYangMills.CutSensitivity
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
@@ -60,6 +61,7 @@ public import GaplessYangMills.TransferForm
 public import GaplessYangMills.UnitaryLog
 public import GaplessYangMills.UnitarySphere
 public import GaplessYangMills.Ward
+public import GaplessYangMills.WardTest
 public import GaplessYangMills.WeakCoupling
 public import GaplessYangMills.Wilson
 public import GaplessYangMills.WilsonBadPlaquettes

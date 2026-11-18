@@ -21,7 +21,7 @@ open scoped ENNReal Topology
 
 noncomputable section
 
-private theorem integral_translateConfig {N : ℕ} (β : ℝ) {l : ℕ → ℕ}
+theorem integral_translateConfig {N : ℕ} (β : ℝ) {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N))
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
     (a : Site) (f : InfiniteConfig N → ℝ) (hf : Measurable f) :

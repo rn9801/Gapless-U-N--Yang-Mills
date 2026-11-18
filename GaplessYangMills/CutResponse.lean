@@ -248,7 +248,7 @@ theorem hasDerivAt_integral_shiftCutBlock {Ω : Type*} [MeasurableSpace Ω] (μ 
       integral_shiftCutBlock_reference S c t (fun y hy => (hsupport t ht y hy).1) (fun η => f (u, η)))
   exact h.congr_of_eventuallyEq hEq
 
-private theorem measurable_shiftCutBlock (S : Finset Plaquette) (v : CutBlock S) :
+theorem measurable_shiftCutBlock (S : Finset Plaquette) (v : CutBlock S) :
     Measurable (shiftCutBlock S v) := by
   have h := (splitCutField S).measurable
   exact (splitCutField S).symm.measurable.comp
