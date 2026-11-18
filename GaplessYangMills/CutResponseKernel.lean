@@ -121,7 +121,7 @@ def singleCutResponse {N : ℕ} (μ : Measure (InfiniteConfig N)) (p : Plaquette
   integratedCutDerivative μ {p} (fun _ => 1) (fun q =>
     repairedCutFlux (fun j y => q.1 (j, y)) q.2 I x)
 
-private theorem continuous_shiftedCutDensityDerivative_fixed (S : Finset Plaquette)
+theorem continuous_shiftedCutDensityDerivative_fixed (S : Finset Plaquette)
     (c : CutBlock S) (t : ℝ) :
     Continuous (shiftedCutDensityDerivative S c t) := by
   have hp : Continuous (fun y : CutBlock S => (t, y)) := continuous_const.prodMk continuous_id

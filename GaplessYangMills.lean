@@ -17,6 +17,7 @@ public import GaplessYangMills.CutFluxApproximation
 public import GaplessYangMills.CutFluxBounds
 public import GaplessYangMills.CutFluxMeasurability
 public import GaplessYangMills.CutLaw
+public import GaplessYangMills.CutNormalization
 public import GaplessYangMills.CutResponse
 public import GaplessYangMills.CutResponseKernel
 public import GaplessYangMills.CutSensitivity
@@ -50,6 +51,7 @@ public import GaplessYangMills.PeriodicKernelCycle
 public import GaplessYangMills.PeriodicWilsonComparison
 public import GaplessYangMills.RankOneTwist
 public import GaplessYangMills.RankOneTwistLaw
+public import GaplessYangMills.ReflectionHilbert
 public import GaplessYangMills.ShiftMeans
 public import GaplessYangMills.ShortUnitaryProducts
 public import GaplessYangMills.Spectral

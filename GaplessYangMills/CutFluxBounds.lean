@@ -234,7 +234,7 @@ theorem componentCoverTail_eq_tsum (x : Site) (R : ℕ) (ω : Ω)
   have hn (n : ℕ) := componentCoverBlock_nonneg mark B x (n + R) ω
   rw [componentCoverTail, ← ENNReal.ofReal_tsum_of_nonneg hn h, ENNReal.toReal_ofReal (tsum_nonneg hn)]
 
-private theorem summable_sixth_geometric {t : ℝ} (h₀ : 0 ≤ t) (ht : t < 1) :
+theorem summable_sixth_geometric {t : ℝ} (h₀ : 0 ≤ t) (ht : t < 1) :
     Summable (fun n : ℕ => ((n : ℝ) + 1) ^ 6 * t ^ n) := by
   have hn : ‖t‖ < 1 := by simpa only [Real.norm_of_nonneg h₀] using ht
   have h := (summable_pow_mul_geometric_of_norm_lt_one 6 hn).mul_left (2 ^ 6)
