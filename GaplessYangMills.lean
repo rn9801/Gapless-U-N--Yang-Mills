@@ -27,6 +27,8 @@ public import GaplessYangMills.KernelCycleEstimate
 public import GaplessYangMills.KernelQuadrature
 public import GaplessYangMills.Lattice
 public import GaplessYangMills.Marginal
+public import GaplessYangMills.MarkedBoxes
+public import GaplessYangMills.MarkedComponents
 public import GaplessYangMills.MarkedEdges
 public import GaplessYangMills.PeriodicKernelCycle
 public import GaplessYangMills.PeriodicWilsonComparison
