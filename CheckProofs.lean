@@ -12,6 +12,7 @@ import all GaplessYangMills.CapVolume
 import all GaplessYangMills.ComponentFlux
 import all GaplessYangMills.Components
 import all GaplessYangMills.ConnectedSetCounting
+import all GaplessYangMills.ContinuumMaxwell
 import all GaplessYangMills.ContinuumSplit
 import all GaplessYangMills.CubeHolonomy
 import all GaplessYangMills.CutAverages
@@ -71,6 +72,7 @@ import all GaplessYangMills.TorusSlices
 import all GaplessYangMills.TraceCycle
 import all GaplessYangMills.TracePowerOrder
 import all GaplessYangMills.TransferForm
+import all GaplessYangMills.UnitaryCenter
 import all GaplessYangMills.UnitaryLog
 import all GaplessYangMills.UnitarySphere
 import all GaplessYangMills.Ward

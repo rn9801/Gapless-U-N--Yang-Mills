@@ -11,6 +11,7 @@ public import GaplessYangMills.CapVolume
 public import GaplessYangMills.ComponentFlux
 public import GaplessYangMills.Components
 public import GaplessYangMills.ConnectedSetCounting
+public import GaplessYangMills.ContinuumMaxwell
 public import GaplessYangMills.ContinuumSplit
 public import GaplessYangMills.CubeHolonomy
 public import GaplessYangMills.CutAverages
@@ -70,6 +71,7 @@ public import GaplessYangMills.TorusSlices
 public import GaplessYangMills.TraceCycle
 public import GaplessYangMills.TracePowerOrder
 public import GaplessYangMills.TransferForm
+public import GaplessYangMills.UnitaryCenter
 public import GaplessYangMills.UnitaryLog
 public import GaplessYangMills.UnitarySphere
 public import GaplessYangMills.Ward

@@ -2,6 +2,7 @@ module
 
 public import GaplessYangMills.Lattice
 public import Mathlib.Analysis.Calculus.FDeriv.Mul
+public import Mathlib.Analysis.Calculus.FDeriv.Linear
 public import Mathlib.Analysis.Matrix.Normed
 public import Mathlib.LinearAlgebra.Matrix.Trace
 
@@ -87,6 +88,90 @@ theorem traced_central_curvature {N : ℕ} (hN : 0 < N)
     (M + continuumCentral N t).trace.im / N = t := by
   have hn : (N : ℝ) ≠ 0 := by exact_mod_cast hN.ne'
   simp [continuumCentral, Matrix.trace_smul, hM, Complex.real_smul, Complex.mul_im, hn]
+
+theorem traced_central_curvature_complex {N : ℕ} (hN : 0 < N)
+    (M : Matrix (Fin N) (Fin N) ℂ) (hM : M.trace = 0) (t : ℝ) :
+    -Complex.I * (M + continuumCentral N t).trace / (N : ℂ) = (t : ℂ) := by
+  have hN₀ : (N : ℂ) ≠ 0 := by exact_mod_cast hN.ne'
+  have he : -Complex.I * ((t : ℂ) * (Complex.I * (N : ℂ))) = (t : ℂ) * (N : ℂ) := by
+    calc
+      _ = (-Complex.I * Complex.I) * ((t : ℂ) * (N : ℂ)) := by ring
+      _ = _ := by simp
+  simp only [continuumCentral, Matrix.trace_add, hM, zero_add, Matrix.trace_smul, Matrix.trace_one,
+    Fintype.card_fin, Complex.real_smul, smul_eq_mul, he, mul_div_cancel_right₀ _ hN₀]
+
+private def continuumTrace (N : ℕ) : Matrix (Fin N) (Fin N) ℂ →L[ℝ] ℂ :=
+  (Matrix.traceLinearMap (Fin N) ℝ ℂ).toContinuousLinearMap
+
+theorem continuumCurvature_trace_zero {N : ℕ} (A : LocalConnection N) (i j : Axis) (x : Axis → ℝ)
+    (hA : ∀ k, DifferentiableAt ℝ (A k) x) (htrace : ∀ k y, (A k y).trace = 0) :
+    (continuumCurvature A i j x).trace = 0 := by
+  let L := continuumTrace N
+  have hd (k : Axis) (v : Axis → ℝ) : (fderiv ℝ (A k) x v).trace = 0 := by
+    have hzero : L ∘ A k = fun _ => 0 := funext (htrace k)
+    have hconst : fderiv ℝ (L ∘ A k) x = 0 :=
+      (congrArg (fun f : (Axis → ℝ) → ℂ => fderiv ℝ f x) hzero).trans (fderiv_const_apply 0)
+    have h := (L.fderiv_comp_left (hA k)).symm.trans hconst
+    exact congrArg (fun D : (Axis → ℝ) →L[ℝ] ℂ => D v) h
+  simp only [continuumCurvature, Matrix.trace_add, Matrix.trace_sub, hd, sub_self, zero_add]
+  rw [Matrix.trace_mul_comm, sub_self]
+
+def centralPotential {N : ℕ} (A : LocalConnection N) (i : Axis) (x : Axis → ℝ) : ℝ :=
+  (A i x).trace.im / N
+
+def tracelessConnection {N : ℕ} (A : LocalConnection N) : LocalConnection N :=
+  fun i x => A i x - continuumCentral N (centralPotential A i x)
+
+theorem tracelessConnection_antiHermitian {N : ℕ} (A : LocalConnection N)
+    (hskew : ∀ i x, (A i x)ᴴ = -A i x) (i : Axis) (x : Axis → ℝ) :
+    (tracelessConnection A i x)ᴴ = -tracelessConnection A i x := by
+  have hcentral (s : ℝ) : (continuumCentral N s)ᴴ = -continuumCentral N s := by
+    simp [continuumCentral]
+  rw [tracelessConnection, Matrix.conjTranspose_sub, hskew, hcentral]
+  abel
+
+theorem tracelessConnection_trace_zero {N : ℕ} (hN : 0 < N) (A : LocalConnection N)
+    (hskew : ∀ i x, (A i x)ᴴ = -A i x) (i : Axis) (x : Axis → ℝ) :
+    (tracelessConnection A i x).trace = 0 := by
+  have hN₀ : (N : ℝ) ≠ 0 := by exact_mod_cast hN.ne'
+  have hreal : (A i x).trace.re = 0 := by
+    have h := congrArg (fun M : Matrix (Fin N) (Fin N) ℂ => M.trace.re) (hskew i x)
+    simp only [Matrix.trace_conjTranspose, Matrix.trace_neg, Complex.star_def, Complex.conj_re, Complex.neg_re] at h
+    linarith
+  apply Complex.ext
+  · simp [tracelessConnection, continuumCentral, Matrix.trace_smul, Complex.real_smul, Complex.mul_re, hreal]
+  · simp [tracelessConnection, centralPotential, continuumCentral, Matrix.trace_smul, Complex.real_smul,
+      Complex.mul_im, hN₀]
+
+/-- The curvature and trace action of an anti-Hermitian connection split
+into the traceless curvature and the ordinary exterior derivative of its
+normalized central potential. -/
+theorem continuumCurvature_unitary_split {N : ℕ} (hN : 0 < N) (A : LocalConnection N)
+    (hskew : ∀ k y, (A k y)ᴴ = -A k y) (i j : Axis) (x : Axis → ℝ)
+    (hA : ∀ k, DifferentiableAt ℝ (A k) x) :
+    let da := fderiv ℝ (centralPotential A j) x (Pi.single i 1) -
+      fderiv ℝ (centralPotential A i) x (Pi.single j 1)
+    let F₀ := continuumCurvature (tracelessConnection A) i j x
+    continuumCurvature A i j x = F₀ + continuumCentral N da ∧
+      traceNormSquared (continuumCurvature A i j x) = traceNormSquared F₀ + N * da ^ 2 ∧
+      -Complex.I * (continuumCurvature A i j x).trace / (N : ℂ) = (da : ℂ) := by
+  dsimp only
+  have ha (k : Axis) : DifferentiableAt ℝ (centralPotential A k) x := by
+    have him : DifferentiableAt ℝ (fun y => (A k y).trace.im) x :=
+      Complex.imCLM.differentiableAt.comp x ((continuumTrace N).differentiableAt.comp x (hA k))
+    change DifferentiableAt ℝ (fun y => (A k y).trace.im / (N : ℝ)) x
+    simp only [div_eq_mul_inv]
+    exact him.mul (differentiableAt_const _)
+  have hA₀ (k : Axis) : DifferentiableAt ℝ (tracelessConnection A k) x :=
+    (hA k).sub ((ha k).smul_const _)
+  have hsplit : (fun k y => tracelessConnection A k y + continuumCentral N (centralPotential A k y)) = A :=
+    funext fun k => funext fun y => sub_add_cancel _ _
+  have h := continuumCurvature_add_central (tracelessConnection A) (centralPotential A) i j x hA₀ ha
+  rw [hsplit] at h
+  have htrace := continuumCurvature_trace_zero (tracelessConnection A) i j x hA₀
+    (tracelessConnection_trace_zero hN A hskew)
+  rw [h]
+  exact ⟨rfl, traceNormSquared_add_central _ htrace _, traced_central_curvature_complex hN _ htrace _⟩
 
 end
 
