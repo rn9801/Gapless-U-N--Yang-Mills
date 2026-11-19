@@ -31,7 +31,7 @@ theorem integral_translateConfig {N : ℕ} (β : ℝ) {l : ℕ → ℕ}
   rw [← integral_map (continuous_translateConfig a).measurable.aemeasurable
     hf.stronglyMeasurable.aestronglyMeasurable, hmap]
 
-private theorem plaquetteCurrent_translateConfig {N : ℕ} (a : Site) (U : InfiniteConfig N)
+theorem plaquetteCurrent_translateConfig {N : ℕ} (a : Site) (U : InfiniteConfig N)
     (I : Face) (x : Site) : plaquetteCurrent (translateConfig a U) (I, x) = plaquetteCurrent U (I, x + a) := by
   cases I <;> simp only [plaquetteCurrent, plaquetteHolonomy, Face.axes, translateConfig, add_right_comm x]
 
@@ -42,7 +42,7 @@ theorem continuous_centeredPlaquetteCurrent {N : ℕ} (m : Measure (InfiniteConf
     Continuous (fun U => centeredPlaquetteCurrent m U p) :=
   (continuous_plaquetteCurrent p).sub continuous_const
 
-private theorem centeredPlaquetteCurrent_translateConfig {N : ℕ} (β : ℝ) {l : ℕ → ℕ}
+theorem centeredPlaquetteCurrent_translateConfig {N : ℕ} (β : ℝ) {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N))
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
     (a : Site) (U : InfiniteConfig N) (I : Face) (x : Site) :

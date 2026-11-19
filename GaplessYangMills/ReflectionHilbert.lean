@@ -66,6 +66,10 @@ abbrev Hilbert (B : PositiveReflectionForm E) := Completion B.FormSpace
 def ofVector (B : PositiveReflectionForm E) (u : E) : B.Hilbert :=
   (show B.FormSpace from u)
 
+theorem ofVector_smul (B : PositiveReflectionForm E) (r : ℝ) (u : E) :
+    B.ofVector (r • u) = r • B.ofVector u :=
+  Completion.coe_smul r (show B.FormSpace from u)
+
 @[simp] theorem inner_ofVector (B : PositiveReflectionForm E) (u v : E) :
     ⟪B.ofVector u, B.ofVector v⟫ = B.form u v := by
   calc

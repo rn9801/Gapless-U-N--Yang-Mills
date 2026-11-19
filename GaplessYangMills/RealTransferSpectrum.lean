@@ -155,6 +155,17 @@ theorem norm_realSelfAdjoint_aeval_le (T : H →L[ℝ] H) (hT : IsSelfAdjoint T)
   rw [← ofReal_norm, ENNReal.ofReal_le_ofReal_iff hC] at hR
   exact hR
 
+theorem realPositiveContraction_spectrum_subset (T : H →L[ℝ] H)
+    (hT : T.IsPositive) (hNorm : ‖T‖ ≤ 1) : spectrum ℝ T ⊆ Set.Icc 0 1 := by
+  intro t ht
+  have h₀ : 0 ≤ t := SpectrumRestricts.nnreal_iff.mp hT.spectrumRestricts t ht
+  have h₁ : ‖t‖ ≤ ‖T‖ * ‖(1 : H →L[ℝ] H)‖ :=
+    spectrum.norm_le_norm_mul_of_mem (a := T) (k := t) ht
+  have hi : ‖(1 : H →L[ℝ] H)‖ ≤ (1 : ℝ) := ContinuousLinearMap.norm_id_le
+  have hi₀ : 0 ≤ ‖(1 : H →L[ℝ] H)‖ := norm_nonneg (1 : H →L[ℝ] H)
+  exact ⟨h₀, (Real.le_norm_self _).trans (h₁.trans
+    ((mul_le_mul hNorm hi hi₀ zero_le_one).trans_eq (one_mul 1)))⟩
+
 /-- The powers converge in operator norm under a gap in the real spectrum.
 The limit removes the entire vacuum component with the stated norm error. -/
 theorem exists_realTransfer_power_limit (T : H →L[ℝ] H) (hT : IsSelfAdjoint T) {r : ℝ}

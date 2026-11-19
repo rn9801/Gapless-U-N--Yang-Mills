@@ -198,7 +198,7 @@ theorem unitaryTrace_re_inv {N : ℕ} (P : UnitaryMatrix N) :
   rw [Matrix.trace_conjTranspose]
   rfl
 
-private theorem unitaryTrace_conj {N : ℕ} (P Q : UnitaryMatrix N) :
+theorem unitaryTrace_conj {N : ℕ} (P Q : UnitaryMatrix N) :
     (Q * P * Q⁻¹).val.trace = P.val.trace := by
   have hi : (Q⁻¹).val * Q.val = 1 :=
     congrArg (fun V : UnitaryMatrix N => V.val) (inv_mul_cancel Q)

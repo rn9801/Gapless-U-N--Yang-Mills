@@ -144,7 +144,7 @@ private theorem wilsonPermuteL2_shift {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
   funext U
   simpa only [Function.comp_apply, permuteSite_step] using translateConfig_permuteConfig σ (step τ) U
 
-private theorem wilsonOSForm_permute {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
+theorem wilsonOSForm_permute {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
     (σ : Equiv.Perm Axis) (τ : Axis) (u v : wilsonHalfSpace μ τ) :
@@ -156,26 +156,63 @@ private theorem wilsonOSForm_permute {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
   rw [← wilsonPermuteL2_reflect]
   exact ((wilsonPermuteL2 μ hμ σ).inner_map_map _ _).symm
 
+def wilsonTransferAxisIsometry {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
+    (σ : Equiv.Perm Axis) (τ : Axis) :
+    (wilsonOSForm μ hl hμ τ).Hilbert ≃ₗᵢ[ℝ] (wilsonOSForm μ hl hμ (σ τ)).Hilbert :=
+  (wilsonOSForm μ hl hμ τ).hilbertIsometry (wilsonOSForm μ hl hμ (σ τ))
+    (wilsonHalfSpacePermute μ hμ σ τ) (wilsonOSForm_permute μ hl hμ σ τ)
+
+theorem wilsonTransferAxisIsometry_ofVector {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
+    (σ : Equiv.Perm Axis) (τ : Axis) (u : wilsonHalfSpace μ τ) :
+    wilsonTransferAxisIsometry μ hl hμ σ τ ((wilsonOSForm μ hl hμ τ).ofVector u) =
+      (wilsonOSForm μ hl hμ (σ τ)).ofVector (wilsonHalfSpacePermute μ hμ σ τ u) :=
+  (wilsonOSForm μ hl hμ τ).hilbertIsometry_ofVector _ _ _ u
+
+set_option maxHeartbeats 800000 in
+theorem wilsonTransferAxisIsometry_intertwines {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
+    (σ : Equiv.Perm Axis) (τ : Axis) (u : (wilsonOSForm μ hl hμ τ).Hilbert) :
+    wilsonTransferAxisIsometry μ hl hμ σ τ (wilsonTransfer hβ μ hl hμ τ u) =
+      wilsonTransfer hβ μ hl hμ (σ τ) (wilsonTransferAxisIsometry μ hl hμ σ τ u) :=
+  (wilsonOSForm μ hl hμ τ).hilbertIsometry_transfer _ _ _
+    (wilsonOSShift hβ μ hl hμ τ) (wilsonOSShift hβ μ hl hμ (σ τ))
+    (fun v => Subtype.ext (wilsonPermuteL2_shift μ hμ σ τ v.val)) u
+
+set_option maxHeartbeats 800000 in
+theorem wilsonTransferAxisIsometry_pow {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
+    (σ : Equiv.Perm Axis) (τ : Axis) (u : (wilsonOSForm μ hl hμ τ).Hilbert) (n : ℕ) :
+    wilsonTransferAxisIsometry μ hl hμ σ τ ((wilsonTransfer hβ μ hl hμ τ ^ n) u) =
+      (wilsonTransfer hβ μ hl hμ (σ τ) ^ n) (wilsonTransferAxisIsometry μ hl hμ σ τ u) := by
+  let I := wilsonTransferAxisIsometry μ hl hμ σ τ
+  let S := wilsonTransfer hβ μ hl hμ τ
+  let T := wilsonTransfer hβ μ hl hμ (σ τ)
+  have hI : Function.Semiconj (⇑I) (⇑S) (⇑T) :=
+    wilsonTransferAxisIsometry_intertwines hβ μ hl hμ σ τ
+  change I ((S ^ n) u) = (T ^ n) (I u)
+  simpa only [pow_apply_eq_iterate] using hI.iterate_right n u
+
 set_option maxHeartbeats 800000 in
 theorem wilsonTransfer_spectrum_permute {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
     (σ : Equiv.Perm Axis) (τ : Axis) :
     spectrum ℝ (wilsonTransfer hβ μ hl hμ (σ τ)) = spectrum ℝ (wilsonTransfer hβ μ hl hμ τ) := by
-  let B := wilsonOSForm μ hl hμ τ
-  let C := wilsonOSForm μ hl hμ (σ τ)
-  let e := wilsonHalfSpacePermute μ hμ σ τ
-  let I := B.hilbertIsometry C e (wilsonOSForm_permute μ hl hμ σ τ)
-  let S := wilsonOSShift hβ μ hl hμ τ
-  let T := wilsonOSShift hβ μ hl hμ (σ τ)
-  have hS (u : wilsonHalfSpace μ τ) : e (S.operator u) = T.operator (e u) :=
-    Subtype.ext (wilsonPermuteL2_shift μ hμ σ τ u.val)
-  have hI (u : B.Hilbert) : I (S.transfer u) = T.transfer (I u) :=
-    B.hilbertIsometry_transfer C e (wilsonOSForm_permute μ hl hμ σ τ) S T hS u
-  have he : I.conjStarAlgEquiv S.transfer = T.transfer := by
+  let I := wilsonTransferAxisIsometry μ hl hμ σ τ
+  let S := wilsonTransfer hβ μ hl hμ τ
+  let T := wilsonTransfer hβ μ hl hμ (σ τ)
+  have hI (u : (wilsonOSForm μ hl hμ τ).Hilbert) : I (S u) = T (I u) :=
+    wilsonTransferAxisIsometry_intertwines hβ μ hl hμ σ τ u
+  have he : I.conjStarAlgEquiv S = T := by
     ext1 u
     rw [LinearIsometryEquiv.conjStarAlgEquiv_apply_apply, hI, I.apply_symm_apply]
-  change spectrum ℝ T.transfer = spectrum ℝ S.transfer
+  change spectrum ℝ T = spectrum ℝ S
   rw [← he]
   exact AlgEquiv.spectrum_eq I.conjStarAlgEquiv.toAlgEquiv _
 

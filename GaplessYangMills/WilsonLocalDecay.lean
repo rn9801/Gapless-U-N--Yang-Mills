@@ -72,13 +72,16 @@ private theorem translated_projected_inner (τ : Axis) (a x : Site) (u v : Wilso
 end WilsonLaw
 
 set_option maxHeartbeats 1000000 in
-theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
-    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+theorem wilsonLocalCovariance_directional_decay_of_vector_bound {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N))
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
-    (P : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)
-    (hP : Tendsto (fun n : ℕ => wilsonTransfer hβ μ hl hμ τ ^ n) atTop (𝓝 P))
-    (r : ℝ) (hPow : ∀ n : ℕ, ‖wilsonTransfer hβ μ hl hμ τ ^ n - P‖ ≤ r ^ n)
+    (r : ℝ)
     (b : ℕ) (A : WilsonSlabObservable N τ (-(b : ℤ)) b) (J : WilsonSlabObservable N τ 0 1)
+    (hbound : ∀ n : ℕ, ∀ u v : wilsonHalfSpace μ τ,
+      (u.val = wilsonReflectL2 μ hμ τ 0 (wilsonTranslateL2 μ hμ ((-2 : ℤ) • step τ) (J.toL2 μ)) ∨
+        v.val = J.toL2 μ) →
+      |⟪wilsonReflectL2 μ hμ τ 0 u.val, (1 - wilsonDirectionalProjection μ hμ τ)
+        (wilsonTranslateL2 μ hμ (n • step τ) v.val)⟫_ℝ| ≤ ‖u.val‖ * ‖v.val‖ * r ^ n)
     (x : Site) :
     |⟪(1 - wilsonDirectionalProjection μ hμ τ) (J.toL2 μ), wilsonTranslateL2 μ hμ x (A.toL2 μ)⟫_ℝ| ≤
       ‖A.toL2 μ‖ * ‖J.toL2 μ‖ * r ^ ((x τ).natAbs - (b + 2)) := by
@@ -88,10 +91,6 @@ theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 �
   let T := wilsonTranslateL2 μ hμ
   let R := wilsonReflectL2 μ hμ τ 0
   have Rnorm (u : WilsonL2 μ) : ‖R u‖ = ‖u‖ := (wilsonReflectL2Isometry μ hμ τ 0).norm_map _
-  have hbound (u v : wilsonHalfSpace μ τ) :
-      |⟪R u.val, Q (T (n • step τ) v.val)⟫_ℝ| ≤ ‖u.val‖ * ‖v.val‖ * r ^ n :=
-    (wilsonTransfer_matrixElement_bound hβ μ hl hμ τ P hP n u v).trans
-      (mul_le_mul_of_nonneg_left (hPow n) (mul_nonneg (norm_nonneg _) (norm_nonneg _)))
   change |⟪Q (J.toL2 μ), T x (A.toL2 μ)⟫_ℝ| ≤ C * r ^ n
   by_cases hlarge : b + 2 ≤ (x τ).natAbs
   · have hn : (n : ℤ) = ((x τ).natAbs : ℤ) - (b + 2) := by dsimp only [n]; push_cast [Nat.cast_sub hlarge]; ring
@@ -122,7 +121,7 @@ theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 �
         congr 2
         dsimp only [y]
         abel
-      have h := hbound u v
+      have h := hbound n u v (Or.inl hu')
       rw [hu, hv, hu', hv0, Rnorm, norm_wilsonTranslateL2_apply, norm_wilsonTranslateL2_apply] at h
       rw [translated_projected_inner μ hμ τ a x, wilsonProjection_complement_inner μ hμ τ]
       simpa only [C, mul_comm ‖J.toL2 μ‖ ‖A.toL2 μ‖] using h
@@ -144,7 +143,7 @@ theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 �
       have hu : R u.val = T y (A.toL2 μ) := by
         rw [hu']
         exact wilsonReflectL2_involutive μ hμ τ 0 _
-      have h := hbound u v
+      have h := hbound n u v (Or.inr rfl)
       rw [hu, hu', Rnorm, norm_wilsonTranslateL2_apply] at h
       change |⟪T y (A.toL2 μ), Q (T a (J.toL2 μ))⟫_ℝ| ≤ C * r ^ n at h
       rw [translated_projected_inner μ hμ τ a x, real_inner_comm]
@@ -157,6 +156,20 @@ theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 �
         rw [norm_wilsonTranslateL2_apply]
         exact mul_le_mul_of_nonneg_right (wilsonProjection_complement_norm_le μ hμ τ _) (norm_nonneg _)
       _ = C := mul_comm _ _
+
+theorem wilsonLocalCovariance_directional_decay {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
+    (P : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)
+    (hP : Tendsto (fun n : ℕ => wilsonTransfer hβ μ hl hμ τ ^ n) atTop (𝓝 P))
+    (r : ℝ) (hPow : ∀ n : ℕ, ‖wilsonTransfer hβ μ hl hμ τ ^ n - P‖ ≤ r ^ n)
+    (b : ℕ) (A : WilsonSlabObservable N τ (-(b : ℤ)) b) (J : WilsonSlabObservable N τ 0 1)
+    (x : Site) :
+    |⟪(1 - wilsonDirectionalProjection μ hμ τ) (J.toL2 μ), wilsonTranslateL2 μ hμ x (A.toL2 μ)⟫_ℝ| ≤
+      ‖A.toL2 μ‖ * ‖J.toL2 μ‖ * r ^ ((x τ).natAbs - (b + 2)) :=
+  wilsonLocalCovariance_directional_decay_of_vector_bound μ hμ τ r b A J
+    (fun n u v _ => (wilsonTransfer_matrixElement_bound hβ μ hl hμ τ P hP n u v).trans
+      (mul_le_mul_of_nonneg_left (hPow n) (mul_nonneg (norm_nonneg _) (norm_nonneg _)))) x
 
 end
 

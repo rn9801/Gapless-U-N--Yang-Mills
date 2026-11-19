@@ -57,25 +57,21 @@ theorem wilsonDirectionalProjection_shift {N : ℕ} {β : ℝ} {l : ℕ → ℕ}
       congrArg (fun A : WilsonL2 μ →L[ℝ] WilsonL2 μ => A u) (hSP.pow_left n).eq.symm
     _ = _ := hpow
 
-theorem wilsonTransfer_matrixElement_plateau {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+theorem wilsonTransfer_matrixElement_plateau_of_tendsto {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
-    (P : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)
-    (hP : Tendsto (fun n : ℕ => wilsonTransfer hβ μ hl hμ τ ^ n) atTop (𝓝 P))
-    (u v : wilsonHalfSpace μ τ) :
-    ⟪wilsonReflectL2 μ hμ τ 0 u.val, wilsonDirectionalProjection μ hμ τ v.val⟫_ℝ =
-      ⟪(wilsonOSForm μ hl hμ τ).ofVector u, P ((wilsonOSForm μ hl hμ τ).ofVector v)⟫_ℝ := by
+    (u v : wilsonHalfSpace μ τ) (s : ℝ)
+    (h : Tendsto (fun n : ℕ => ⟪(wilsonOSForm μ hl hμ τ).ofVector u,
+      (wilsonTransfer hβ μ hl hμ τ ^ n) ((wilsonOSForm μ hl hμ τ).ofVector v)⟫_ℝ) atTop (𝓝 s)) :
+    ⟪wilsonReflectL2 μ hμ τ 0 u.val, wilsonDirectionalProjection μ hμ τ v.val⟫_ℝ = s := by
   let B := wilsonOSForm μ hl hμ τ
   let S := wilsonTranslateL2 μ hμ (step τ)
   let R := wilsonReflectL2 μ hμ τ 0
   let c (n : ℕ) := ⟪R u.val, wilsonTranslateL2 μ hμ (n • step τ) v.val⟫_ℝ
-  have hA : Continuous (fun Q : B.Hilbert →L[ℝ] B.Hilbert =>
-      ⟪B.ofVector u, Q (B.ofVector v)⟫_ℝ) := by fun_prop
-  have hconv : Tendsto c atTop (𝓝 ⟪B.ofVector u, P (B.ofVector v)⟫_ℝ) := by
+  have hconv : Tendsto c atTop (𝓝 s) := by
     have heq : (fun n : ℕ => ⟪B.ofVector u, (wilsonTransfer hβ μ hl hμ τ ^ n) (B.ofVector v)⟫_ℝ) = c :=
       funext fun n => wilsonTransfer_matrixElement hβ μ hl hμ τ n u v
-    rw [← heq]
-    exact hA.continuousAt.tendsto.comp hP
+    exact heq ▸ h
   have hmean := S.tendsto_birkhoffAverage_orthogonalProjection
     (norm_wilsonTranslateL2_le_one μ hμ (step τ)) v.val
   have hB : Continuous (fun w : WilsonL2 μ => ⟪R u.val, w⟫_ℝ) := continuous_const.inner continuous_id
@@ -89,6 +85,19 @@ theorem wilsonTransfer_matrixElement_plateau {N : ℕ} {β : ℝ} (hβ : 0 ≤ �
     simpa only [birkhoffAverage, birkhoffSum, id_eq, he,
       real_inner_smul_right, inner_sum, c] using hlim
   exact tendsto_nhds_unique hh hconv.cesaro
+
+theorem wilsonTransfer_matrixElement_plateau {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
+    (P : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)
+    (hP : Tendsto (fun n : ℕ => wilsonTransfer hβ μ hl hμ τ ^ n) atTop (𝓝 P))
+    (u v : wilsonHalfSpace μ τ) :
+    ⟪wilsonReflectL2 μ hμ τ 0 u.val, wilsonDirectionalProjection μ hμ τ v.val⟫_ℝ =
+      ⟪(wilsonOSForm μ hl hμ τ).ofVector u, P ((wilsonOSForm μ hl hμ τ).ofVector v)⟫_ℝ := by
+  let B := wilsonOSForm μ hl hμ τ
+  have hA : Continuous (fun Q : B.Hilbert →L[ℝ] B.Hilbert =>
+      ⟪B.ofVector u, Q (B.ofVector v)⟫_ℝ) := by fun_prop
+  exact wilsonTransfer_matrixElement_plateau_of_tendsto hβ μ hl hμ τ u v _ (hA.continuousAt.tendsto.comp hP)
 
 set_option maxHeartbeats 600000 in
 theorem wilsonTransfer_matrixElement_removeVacuum {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
@@ -126,6 +135,60 @@ theorem wilsonTransfer_matrixElement_bound {N : ℕ} {β : ℝ} (hβ : 0 ≤ β)
         ((Q.le_opNorm _).trans (mul_le_mul_of_nonneg_left (wilsonOSVector_norm_le μ hl hμ τ v) (norm_nonneg _)))
         (norm_nonneg _) (norm_nonneg _)
     _ = _ := by ring
+
+set_option maxHeartbeats 600000 in
+theorem wilsonTransfer_matrixElement_right_vector_bound {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
+    (n : ℕ) (u v : wilsonHalfSpace μ τ) (w : (wilsonOSForm μ hl hμ τ).Hilbert)
+    (hw : Tendsto (fun k : ℕ => (wilsonTransfer hβ μ hl hμ τ ^ k) ((wilsonOSForm μ hl hμ τ).ofVector v))
+      atTop (𝓝 w)) :
+    |⟪wilsonReflectL2 μ hμ τ 0 u.val,
+      (1 - wilsonDirectionalProjection μ hμ τ) (wilsonTranslateL2 μ hμ (n • step τ) v.val)⟫_ℝ| ≤
+        ‖u.val‖ * ‖(wilsonTransfer hβ μ hl hμ τ ^ n) ((wilsonOSForm μ hl hμ τ).ofVector v) - w‖ := by
+  let B := wilsonOSForm μ hl hμ τ
+  let T := wilsonTransfer hβ μ hl hμ τ
+  have hc : Continuous (fun z : B.Hilbert => ⟪B.ofVector u, z⟫_ℝ) := continuous_const.inner continuous_id
+  have hp := wilsonTransfer_matrixElement_plateau_of_tendsto hβ μ hl hμ τ u v
+    ⟪B.ofVector u, w⟫_ℝ (hc.continuousAt.tendsto.comp hw)
+  have he : ⟪wilsonReflectL2 μ hμ τ 0 u.val,
+      (1 - wilsonDirectionalProjection μ hμ τ) (wilsonTranslateL2 μ hμ (n • step τ) v.val)⟫_ℝ =
+      ⟪B.ofVector u, (T ^ n) (B.ofVector v) - w⟫_ℝ := by
+    simp only [sub_apply, one_apply_eq_self, inner_sub_right, wilsonDirectionalProjection_shift]
+    exact congrArg₂ (· - ·) (wilsonTransfer_matrixElement hβ μ hl hμ τ n u v).symm hp
+  rw [he]
+  exact (abs_real_inner_le_norm _ _).trans
+    (mul_le_mul_of_nonneg_right (wilsonOSVector_norm_le μ hl hμ τ u) (norm_nonneg _))
+
+set_option maxHeartbeats 600000 in
+theorem wilsonTransfer_matrixElement_left_vector_bound {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis)
+    (n : ℕ) (u v : wilsonHalfSpace μ τ) (w : (wilsonOSForm μ hl hμ τ).Hilbert)
+    (hw : Tendsto (fun k : ℕ => (wilsonTransfer hβ μ hl hμ τ ^ k) ((wilsonOSForm μ hl hμ τ).ofVector u))
+      atTop (𝓝 w)) :
+    |⟪wilsonReflectL2 μ hμ τ 0 u.val,
+      (1 - wilsonDirectionalProjection μ hμ τ) (wilsonTranslateL2 μ hμ (n • step τ) v.val)⟫_ℝ| ≤
+        ‖(wilsonTransfer hβ μ hl hμ τ ^ n) ((wilsonOSForm μ hl hμ τ).ofVector u) - w‖ * ‖v.val‖ := by
+  let B := wilsonOSForm μ hl hμ τ
+  let T := wilsonTransfer hβ μ hl hμ τ
+  have hs (k : ℕ) : ⟪(T ^ k) (B.ofVector u), B.ofVector v⟫_ℝ =
+      ⟪B.ofVector u, (T ^ k) (B.ofVector v)⟫_ℝ :=
+    ((wilsonTransfer_positive hβ μ hl hμ τ).isSelfAdjoint.pow k).isSymmetric _ _
+  have hc : Continuous (fun z : B.Hilbert => ⟪z, B.ofVector v⟫_ℝ) := continuous_id.inner continuous_const
+  have ht : Tendsto (fun k => ⟪B.ofVector u, (T ^ k) (B.ofVector v)⟫_ℝ) atTop (𝓝 ⟪w, B.ofVector v⟫_ℝ) := by
+    have he := funext hs
+    rw [← he]
+    exact hc.continuousAt.tendsto.comp hw
+  have hp := wilsonTransfer_matrixElement_plateau_of_tendsto hβ μ hl hμ τ u v _ ht
+  have he : ⟪wilsonReflectL2 μ hμ τ 0 u.val,
+      (1 - wilsonDirectionalProjection μ hμ τ) (wilsonTranslateL2 μ hμ (n • step τ) v.val)⟫_ℝ =
+      ⟪(T ^ n) (B.ofVector u) - w, B.ofVector v⟫_ℝ := by
+    simp only [sub_apply, one_apply_eq_self, inner_sub_right, inner_sub_left, wilsonDirectionalProjection_shift]
+    exact congrArg₂ (· - ·) ((wilsonTransfer_matrixElement hβ μ hl hμ τ n u v).symm.trans (hs n).symm) hp
+  rw [he]
+  exact (abs_real_inner_le_norm _ _).trans
+    (mul_le_mul_of_nonneg_left (wilsonOSVector_norm_le μ hl hμ τ v) (norm_nonneg _))
 
 end
 

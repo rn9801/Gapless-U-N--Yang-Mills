@@ -23,6 +23,7 @@ public import GaplessYangMills.CutNormalization
 public import GaplessYangMills.CutResponse
 public import GaplessYangMills.CutResponseKernel
 public import GaplessYangMills.CutSensitivity
+public import GaplessYangMills.CyclicTransfer
 public import GaplessYangMills.Decay
 public import GaplessYangMills.DefectBounds
 public import GaplessYangMills.DirectionalMean
@@ -79,7 +80,9 @@ public import GaplessYangMills.WilsonAxisPermutations
 public import GaplessYangMills.WilsonAxisTransfer
 public import GaplessYangMills.WilsonBadPlaquettes
 public import GaplessYangMills.WilsonBondLimit
+public import GaplessYangMills.WilsonConjugation
 public import GaplessYangMills.WilsonCovariance
+public import GaplessYangMills.WilsonCurrentSymmetries
 public import GaplessYangMills.WilsonGapless
 public import GaplessYangMills.WilsonHalfSpace
 public import GaplessYangMills.WilsonKernel
@@ -87,6 +90,8 @@ public import GaplessYangMills.WilsonLimits
 public import GaplessYangMills.WilsonLocalDecay
 public import GaplessYangMills.WilsonLocalObservables
 public import GaplessYangMills.WilsonOS
+public import GaplessYangMills.WilsonPlaquetteSpectrum
+public import GaplessYangMills.WilsonPlaquetteVectors
 public import GaplessYangMills.WilsonProjection
 public import GaplessYangMills.WilsonProjectedDecay
 public import GaplessYangMills.WilsonReflections

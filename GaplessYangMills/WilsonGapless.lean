@@ -97,37 +97,27 @@ private theorem projectedWilsonLocalCovariance_error {N : ℕ} (hN : 0 < N) {β 
       exact mul_le_mul hP (hE I R) (norm_nonneg _) (norm_nonneg _)
     _ = _ := by ring
 
-set_option maxHeartbeats 800000 in
 theorem wilsonTransfer_spectrum_subset {N : ℕ} {β : ℝ} (hβ : 0 ≤ β) {l : ℕ → ℕ}
     (μ : ProbabilityMeasure (InfiniteConfig N)) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (τ : Axis) :
-    spectrum ℝ (wilsonTransfer hβ μ hl hμ τ) ⊆ Set.Icc 0 1 := by
-  let T := wilsonTransfer hβ μ hl hμ τ
-  intro t ht
-  have h₀ : 0 ≤ t :=
-    SpectrumRestricts.nnreal_iff.mp (wilsonTransfer_positive hβ μ hl hμ τ).spectrumRestricts t ht
-  have h₁ : ‖t‖ ≤ ‖T‖ * ‖(1 : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)‖ :=
-    spectrum.norm_le_norm_mul_of_mem (a := T) (k := t) ht
-  have hT : ‖T‖ ≤ (1 : ℝ) := wilsonTransfer_norm_le_one hβ μ hl hμ τ
-  have hi : ‖(1 : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)‖ ≤ (1 : ℝ) :=
-    ContinuousLinearMap.norm_id_le
-  have hi₀ : 0 ≤ ‖(1 : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)‖ :=
-    norm_nonneg (1 : (wilsonOSForm μ hl hμ τ).Hilbert →L[ℝ] (wilsonOSForm μ hl hμ τ).Hilbert)
-  refine ⟨h₀, (Real.le_norm_self _).trans (h₁.trans ?_)⟩
-  exact (mul_le_mul hT hi hi₀ zero_le_one).trans_eq (one_mul 1)
+    spectrum ℝ (wilsonTransfer hβ μ hl hμ τ) ⊆ Set.Icc 0 1 :=
+  realPositiveContraction_spectrum_subset _ (wilsonTransfer_positive hβ μ hl hμ τ)
+    (wilsonTransfer_norm_le_one hβ μ hl hμ τ)
 
 set_option maxHeartbeats 1000000 in
-private theorem projectedWilsonLocalCovariance_gap_decay {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
+private theorem projectedWilsonLocalCovariance_decay {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
     (μ : ProbabilityMeasure (InfiniteConfig N)) (l : ℕ → ℕ) (hl : StrictMono l)
     (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ)) (I J : Face)
     (ε : ℝ) (hε : 0 < ε)
-    (hgap : ∀ τ : Axis, spectrum ℝ (wilsonTransfer (by linarith) μ hl hμ τ) ⊆ Set.Icc 0 (Real.exp (-ε)) ∪ {1}) :
+    (hdir : ∀ (τ : Axis) (R : ℕ) (x : Site),
+      |⟪(1 - wilsonDirectionalProjection μ hμ τ) (wilsonCurrentL2 μ (J, 0)),
+          wilsonTranslateL2 μ hμ x (wilsonFluxApproxL2 μ R I)⟫_ℝ| ≤
+        ‖wilsonFluxApproxL2 μ R I‖ * ‖wilsonCurrentL2 μ (J, 0)‖ *
+          Real.exp (-ε) ^ ((x τ).natAbs - (4 * R + 6))) :
     ∃ A : ℝ, 0 ≤ A ∧ ∀ R x, |projectedWilsonLocalCovariance μ hμ R I J x| ≤
       A * Real.exp (-ε * ((radius x : ℝ) - (4 * R + 6))) := by
   let r := Real.exp (-ε)
   have hr₀ : 0 ≤ r := Real.exp_nonneg _
-  have hr₁ : r < 1 := Real.exp_lt_one_iff.mpr (neg_lt_zero.mpr hε)
-  have hβ₀ : 0 ≤ β := by linarith
   obtain ⟨M, hM, hnorm⟩ := wilsonFluxApprox_bound hN hβ μ l hl hμ I
   let j := wilsonCurrentL2 μ (J, 0)
   refine ⟨8 * (M * ‖j‖), by positivity, fun R x => ?_⟩
@@ -136,14 +126,11 @@ private theorem projectedWilsonLocalCovariance_gap_decay {N : ℕ} (hN : 0 < N) 
   let A := wilsonFluxApproxObservable N τ R I
   let J₀ := wilsonCurrentObservable μ τ J
   let b := 4 * R + 4
-  let T := wilsonTransfer hβ₀ μ hl hμ τ
-  obtain ⟨P, hP, hPow⟩ := exists_realTransfer_power_limit T
-    (wilsonTransfer_positive hβ₀ μ hl hμ τ).isSelfAdjoint hr₀ hr₁ (hgap τ)
   let D (y : Site) := ‖A.toL2 μ‖ * ‖J₀.toL2 μ‖ * r ^ ((y τ).natAbs - (b + 2))
   have hline (i : Axis) (hi : i ≠ τ) (y : Site) (k : ℕ) : D (y + k • step i) = D y := by
     simp [D, Pi.add_apply, step, hi]
-  have hdir := wilsonLocalCovariance_directional_decay hβ₀ μ hl hμ τ P hP r hPow b A J₀
-  have hlocal := wilsonProjectedL2Correlation_bound_transverse μ hμ τ (J₀.toL2 μ) (A.toL2 μ) D hline hdir x
+  have hlocal := wilsonProjectedL2Correlation_bound_transverse μ hμ τ (J₀.toL2 μ) (A.toL2 μ) D hline
+    (hdir τ R) x
   let n := radius x - (b + 2)
   have he : D x = ‖wilsonFluxApproxL2 μ R I‖ * ‖j‖ * r ^ n := by
     change ‖wilsonFluxApproxL2 μ R I‖ * ‖j‖ * r ^ ((x τ).natAbs - (b + 2)) = _
@@ -165,6 +152,25 @@ private theorem projectedWilsonLocalCovariance_gap_decay {N : ℕ} (hN : 0 < N) 
       exact mul_le_mul
         (mul_le_mul_of_nonneg_left (mul_le_mul_of_nonneg_right (hnorm R) (norm_nonneg _)) (by norm_num))
         hExp (pow_nonneg hr₀ _) (by positivity)
+
+set_option maxHeartbeats 1000000 in
+/-- Directional decay for the local approximants contradicts the projected Ward identity. -/
+theorem projectedWilson_directional_decay_impossible {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
+    (μ : ProbabilityMeasure (InfiniteConfig N)) (l : ℕ → ℕ) (hl : StrictMono l)
+    (hμ : Tendsto (fun n => extendedWilson (evenLength (l n)) N β) atTop (𝓝 μ))
+    (ε : ℝ) (hε : 0 < ε)
+    (hdir : ∀ (I J : Face) (τ : Axis) (R : ℕ) (x : Site),
+      |⟪(1 - wilsonDirectionalProjection μ hμ τ) (wilsonCurrentL2 μ (J, 0)),
+          wilsonTranslateL2 μ hμ x (wilsonFluxApproxL2 μ R I)⟫_ℝ| ≤
+        ‖wilsonFluxApproxL2 μ R I‖ * ‖wilsonCurrentL2 μ (J, 0)‖ *
+          Real.exp (-ε) ^ ((x τ).natAbs - (4 * R + 6))) : False := by
+  apply projectedWilsonCovariance_not_summable hN hβ μ l hl hμ
+  intro I J
+  obtain ⟨C, c, hC, hc, hErr⟩ := projectedWilsonLocalCovariance_error hN hβ μ l hl hμ I J
+  obtain ⟨A, hA, hD⟩ := projectedWilsonLocalCovariance_decay hN hβ μ l hl hμ I J ε hε (hdir I J)
+  obtain ⟨M, m, hm, hb⟩ := exp_bound_of_local_approximants_linear _ _ hA hC hc hε
+    (slope := 4) (by norm_num) hErr hD
+  exact summable_of_exp_bound _ hm hb
 
 set_option maxHeartbeats 1000000 in
 /-- Theorem 1. Every periodic weak Wilson limit at the stated coupling
@@ -190,13 +196,14 @@ theorem wilson_transfer_gapless {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 �
     · exact Or.inr he
     · have ht₁ : t < 1 := lt_of_le_of_ne h.2 he
       exact Or.inl ⟨h.1, le_of_not_gt (fun hr => hn ⟨t, hσ i ▸ ht, hr, ht₁⟩)⟩
-  apply projectedWilsonCovariance_not_summable hN hβ μ l hl hμ
-  intro I J
-  obtain ⟨C, c, hC, hc, hErr⟩ := projectedWilsonLocalCovariance_error hN hβ μ l hl hμ I J
-  obtain ⟨A, hA, hD⟩ := projectedWilsonLocalCovariance_gap_decay hN hβ μ l hl hμ I J ε hε hgap
-  obtain ⟨M, m, hm, hb⟩ := exp_bound_of_local_approximants_linear _ _ hA hC hc hε
-    (slope := 4) (by norm_num) hErr hD
-  exact summable_of_exp_bound _ hm hb
+  refine projectedWilson_directional_decay_impossible hN hβ μ l hl hμ ε hε (fun I J i R x => ?_)
+  have hr₀ : 0 ≤ Real.exp (-ε) := Real.exp_nonneg _
+  have hr₁ : Real.exp (-ε) < 1 := Real.exp_lt_one_iff.mpr (neg_lt_zero.mpr hε)
+  let T := wilsonTransfer hβ₀ μ hl hμ i
+  obtain ⟨P, hP, hPow⟩ := exists_realTransfer_power_limit T
+    (wilsonTransfer_positive hβ₀ μ hl hμ i).isSelfAdjoint hr₀ hr₁ (hgap i)
+  exact wilsonLocalCovariance_directional_decay hβ₀ μ hl hμ i P hP (Real.exp (-ε)) hPow
+    (4 * R + 4) (wilsonFluxApproxObservable N i R I) (wilsonCurrentObservable μ i J) x
 
 theorem wilson_transfer_positive_energies {N : ℕ} (hN : 0 < N) {β : ℝ} (hβ : 10000 ≤ β)
     (μ : ProbabilityMeasure (InfiniteConfig N)) (l : ℕ → ℕ) (hl : StrictMono l)
