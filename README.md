@@ -1,6 +1,14 @@
 # Gaplessness of four-dimensional Wilson U(N) at weak coupling
 
-At fixed lattice spacing, consider four-dimensional Wilson lattice gauge theory with gauge group U(N), for any positive integer N and any coupling of at least 10,000 in the paper’s normalization. For every infinite-volume weak limit of the periodic Wilson measures along even side lengths, the gauge-invariant transfer operator in each coordinate direction has spectral values arbitrarily close to one from below. This gives arbitrarily small positive transfer energies.
+**Theorem.** In four-dimensional Wilson $U(N)$ lattice gauge theory at fixed lattice spacing,
+the gauge-invariant Hamiltonian in each coordinate direction has spectrum intersecting
+$(0,\epsilon)$ for every $\epsilon > 0$. This holds for every positive integer $N$, every Wilson
+coupling $\beta$ of at least 10,000 in the paper’s normalization, and every infinite-volume weak
+limit of the periodic Wilson measures along even side lengths.
+
+Equivalently, in each direction there is no positive exponential decay rate that holds uniformly
+for all gauge-invariant time correlations after subtracting the contribution of the entire vacuum
+space.
 
 | Resource | Links |
 | --- | --- |
